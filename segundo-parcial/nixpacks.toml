@@ -1,0 +1,2 @@
+[php]
+extensions = ["bcmath", "ctype", "fileinfo", "json", "mbstring", "openssl", "pdo", "pdo_pgsql", "tokenizer", "xml", "gd", "zip"]
