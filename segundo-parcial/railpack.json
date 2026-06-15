@@ -1,0 +1,6 @@
+{
+    "builder": "php",
+    "build": {
+        "cmd": "composer install --ignore-platform-req=ext-gd --optimize-autoloader --no-scripts --no-interaction"
+    }
+}
