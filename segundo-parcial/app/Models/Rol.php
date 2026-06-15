@@ -19,4 +19,9 @@ class Rol extends Model
     {
         return $this->hasMany(User::class, 'rol_id');
     }
+
+    public function esCoordinadorOAutoridad()
+    {
+        return in_array($this->nombre, ['coordinador', 'autoridad']);
+    }
 }

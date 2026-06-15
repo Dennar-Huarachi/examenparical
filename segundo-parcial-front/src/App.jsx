@@ -12,8 +12,7 @@ import GestionPage from './pages/GestionPage';
 import CarrerasPage from './pages/CarrerasPage';
 import MateriasPage from './pages/MateriasPage';
 import AulasPage from './pages/AulasPage';
-import TurnosPage from './pages/TurnosPage';
-import HorariosPage from './pages/HorariosPage';
+import TurnosYHorariosPage from './pages/TurnosYHorariosPage';
 import UsuariosPage from './pages/UsuariosPage';
 import ContratacionPage from './pages/ContratacionPage';
 import DocentesPage from './pages/DocentesPage';
@@ -71,62 +70,58 @@ export default function App() {
                         <Route path="/dashboard" element={<Dashboard />} />
                         
                         <Route path="/postulantes" element={
-                            <PrivilegeProtectedRoute privilege="registrar_postulantes">
+                            <PrivilegeProtectedRoute privilege="postulantes.ver">
                                 <PostulantesPage />
                             </PrivilegeProtectedRoute>
                         } />
                         
                         <Route path="/pagos" element={
-                            <PrivilegeProtectedRoute privilege="registrar_pagos">
+                            <PrivilegeProtectedRoute privilege="pagos.ver">
                                 <PagosPage />
                             </PrivilegeProtectedRoute>
                         } />
 
                         <Route path="/roles" element={
-                            <PrivilegeProtectedRoute privilege="gestionar_usuarios">
+                            <PrivilegeProtectedRoute privilege="usuarios.ver">
                                 <GestionRoles />
                             </PrivilegeProtectedRoute>
                         } />
 
                         <Route path="/privilegios" element={
-                            <PrivilegeProtectedRoute privilege="gestionar_usuarios">
+                            <PrivilegeProtectedRoute privilege="usuarios.ver">
                                 <GestionPrivilegios />
                             </PrivilegeProtectedRoute>
                         } />
 
                         <Route path="/carreras" element={
-                            <PrivilegeProtectedRoute privilege="configurar_cupos">
+                            <PrivilegeProtectedRoute privilege="carreras.ver">
                                 <CarrerasPage />
                             </PrivilegeProtectedRoute>
                         } />
 
                         <Route path="/materias" element={
-                            <PrivilegeProtectedRoute privilege="configurar_cupos">
+                            <PrivilegeProtectedRoute privilege="materias.ver">
                                 <MateriasPage />
                             </PrivilegeProtectedRoute>
                         } />
 
                         <Route path="/aulas" element={
-                            <PrivilegeProtectedRoute privilege="configurar_cupos">
+                            <PrivilegeProtectedRoute privilege="aulas.ver">
                                 <AulasPage />
                             </PrivilegeProtectedRoute>
                         } />
 
-                        <Route path="/turnos" element={
-                            <PrivilegeProtectedRoute privilege="configurar_cupos">
-                                <TurnosPage />
+                        <Route path="/turnos-horarios" element={
+                            <PrivilegeProtectedRoute privilege="horarios.ver">
+                                <TurnosYHorariosPage />
                             </PrivilegeProtectedRoute>
                         } />
+                        <Route path="/turnos" element={<Navigate to="/turnos-horarios" replace />} />
+                        <Route path="/horarios" element={<Navigate to="/turnos-horarios" replace />} />
 
                         <Route path="/grupos" element={
-                            <PrivilegeProtectedRoute privilege="configurar_cupos">
+                            <PrivilegeProtectedRoute privilege="grupos.ver">
                                 <GruposPage />
-                            </PrivilegeProtectedRoute>
-                        } />
-
-                        <Route path="/horarios" element={
-                            <PrivilegeProtectedRoute privilege="configurar_cupos">
-                                <HorariosPage />
                             </PrivilegeProtectedRoute>
                         } />
 
@@ -139,32 +134,33 @@ export default function App() {
                         <Route path="/bitacora" element={<BitacoraPage />} />
 
                         <Route path="/gestiones" element={
-                            <PrivilegeProtectedRoute privilege="configurar_cupos">
+                            <PrivilegeProtectedRoute privilege="gestiones.ver">
                                 <GestionPage />
                             </PrivilegeProtectedRoute>
                         } />
 
                         <Route path="/usuarios" element={
-                            <PrivilegeProtectedRoute privilege="gestionar_usuarios">
+                            <PrivilegeProtectedRoute privilege="usuarios.ver">
                                 <UsuariosPage />
                             </PrivilegeProtectedRoute>
                         } />
 
                         <Route path="/contratacion" element={
-                            <PrivilegeProtectedRoute privilege="contratar_docentes">
+                            <PrivilegeProtectedRoute privilege="docentes.contratar">
                                 <ContratacionPage />
                             </PrivilegeProtectedRoute>
                         } />
 
                         <Route path="/docentes" element={
-                            <PrivilegeProtectedRoute privilege="contratar_docentes">
+                            <PrivilegeProtectedRoute privilege="docentes.carga_horaria">
                                 <DocentesPage />
                             </PrivilegeProtectedRoute>
                         } />
 
                         <Route path="/mi-carga" element={<MiCargaPage />} />
 
-                        <Route path="/cambiar-password" element={<CambiarPasswordPage />} />
+                        <Route path="/cambiar-contrasena" element={<CambiarPasswordPage />} />
+                        <Route path="/cambiar-password" element={<Navigate to="/cambiar-contrasena" replace />} />
                     </Route>
 
                     {/* Redirección por defecto */}

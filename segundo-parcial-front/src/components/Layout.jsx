@@ -1,11 +1,10 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/authprovider';
 import Sidebar from './Sidebar';
 
 export default function Layout() {
     const { user, logout } = useContext(AuthContext);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Redirigir al inicio de sesión si no hay sesión activa
     if (!user) {
@@ -13,20 +12,15 @@ export default function Layout() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
-            {/* Barra lateral fija */}
-            <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <div className="min-h-screen bg-slate-50 md:pl-64 flex">
+            {/* Barra lateral */}
+            <Sidebar />
 
             {/* Contenido principal */}
-            <div className="flex-1 flex flex-col pl-0 lg:pl-64">
+            <div className="flex-1 flex flex-col">
                 {/* Cabecera de control superior */}
                 <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-20 shadow-xs">
                     <div className="flex items-center gap-2">
-                        <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors cursor-pointer" aria-label="Abrir menú">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        </button>
                         <span className="text-slate-400 font-medium text-xs">Sistema de Admisión FICCT</span>
                         <span className="text-slate-300">/</span>
                         <span className="text-slate-800 font-semibold text-xs uppercase tracking-wider">CUP</span>

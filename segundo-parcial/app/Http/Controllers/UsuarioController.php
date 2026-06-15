@@ -60,7 +60,7 @@ class UsuarioController extends Controller
         }
 
         $rol = Rol::find($request->rol_id);
-        if (!$rol || !in_array($rol->nombre, ['coordinador', 'autoridad', 'administrador', 'Coordinador', 'Autoridad', 'Administrador'])) {
+        if (!$rol || !in_array($rol->nombre, ['coordinador', 'autoridad'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Solo se permiten roles de Coordinador o Autoridad para registro manual.',

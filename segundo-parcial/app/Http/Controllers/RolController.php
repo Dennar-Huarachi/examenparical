@@ -3,124 +3,135 @@
 namespace App\Http\Controllers;
 
 use App\Models\Rol;
+use App\Models\Privilegio;
 use App\Models\Bitacora;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class RolController extends Controller
 {
     public function index()
     {
-        $roles = Rol::orderBy('id', 'asc')->get();
+        $roles = Rol::with('privilegios')->orderBy('id', 'asc')->get()->map(function ($rol) {
+            $privilegiosPorModulo = [];
+            foreach ($rol->privilegios as $priv) {
+                $modulo = $priv->modulo ?: 'general';
+                if (!isset($privilegiosPorModulo[$modulo])) {
+                    $privilegiosPorModulo[$modulo] = [];
+                }
+                $privilegiosPorModulo[$modulo][] = [
+                    'id' => $priv->id,
+                    'nombre' => $priv->nombre,
+                    'descripcion' => $priv->descripcion,
+                ];
+            }
+
+            return [
+                'id' => $rol->id,
+                'nombre' => $rol->nombre,
+                'descripcion' => $rol->descripcion,
+                'privilegios' => $privilegiosPorModulo,
+            ];
+        });
+
         return response()->json([
             'success' => true,
-            'data' => $roles
+            'data' => $roles,
         ]);
     }
 
-    public function store(Request $request)
+    public function show($id)
     {
-        $validador = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:50|unique:roles,nombre',
-            'descripcion' => 'nullable|string|max:255',
-        ]);
+        $rol = Rol::with('privilegios')->find($id);
 
-        if ($validador->fails()) {
+        if (!$rol) {
             return response()->json([
                 'success' => false,
-                'message' => $validador->errors()->first()
-            ], 422);
+                'message' => 'Rol no encontrado.',
+            ], 404);
         }
 
-        $rol = Rol::create([
-            'nombre' => $request->nombre,
-            'descripcion' => $request->descripcion,
-        ]);
-
-        // Registrar en Bitácora
-        Bitacora::registrar('Creación de rol', 'Nombre: ' . $rol->nombre . ', Descripción: ' . $rol->descripcion, 'roles', $rol->id);
+        $todosPrivilegios = Privilegio::all()->map(function ($priv) use ($rol) {
+            return [
+                'id' => $priv->id,
+                'nombre' => $priv->nombre,
+                'descripcion' => $priv->descripcion,
+                'modulo' => $priv->modulo,
+                'activo' => $rol->privilegios->contains($priv->id),
+            ];
+        })->groupBy('modulo');
 
         return response()->json([
             'success' => true,
-            'data' => $rol,
-            'message' => 'Rol creado correctamente'
+            'data' => [
+                'id' => $rol->id,
+                'nombre' => $rol->nombre,
+                'descripcion' => $rol->descripcion,
+                'privilegios' => $todosPrivilegios,
+            ],
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function syncPrivilegios(Request $request, $id)
     {
         $rol = Rol::find($id);
 
         if (!$rol) {
             return response()->json([
                 'success' => false,
-                'message' => 'Rol no encontrado'
+                'message' => 'Rol no encontrado.',
             ], 404);
         }
 
-        $validador = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:50|unique:roles,nombre,' . $id,
-            'descripcion' => 'nullable|string|max:255',
-        ]);
-
-        if ($validador->fails()) {
+        // No permitir modificar privilegios de coordinador ni autoridad
+        if ($rol->esCoordinadorOAutoridad()) {
             return response()->json([
                 'success' => false,
-                'message' => $validador->errors()->first()
-            ], 422);
-        }
-
-        // Protección de roles del sistema
-        $protectedRoles = ['Administrador', 'Docente', 'Coordinador', 'Autoridad'];
-        if (in_array($rol->nombre, $protectedRoles) && $request->nombre !== $rol->nombre) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No se puede cambiar el nombre de un rol protegido del sistema.'
+                'message' => 'No se pueden modificar los privilegios de ' . $rol->nombre . '. Tiene acceso total al sistema.',
             ], 403);
         }
 
-        $nombreViejo = $rol->nombre;
-        $rol->update($request->all());
-
-        // Registrar en Bitácora
-        Bitacora::registrar('Modificación de rol', 'De: ' . $nombreViejo . ' a: ' . $rol->nombre, 'roles', $rol->id);
-
-        return response()->json([
-            'success' => true,
-            'data' => $rol,
-            'message' => 'Rol modificado correctamente'
+        $request->validate([
+            'privilegio_ids' => 'required|array',
+            'privilegio_ids.*' => 'exists:privilegios,id',
         ]);
-    }
 
-    public function destroy($id)
-    {
-        $rol = Rol::find($id);
+        $rol->privilegios()->sync($request->privilegio_ids);
 
-        if (!$rol) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Rol no encontrado'
-            ], 404);
+        $privilegiosNombres = Privilegio::whereIn('id', $request->privilegio_ids)->pluck('nombre')->toArray();
+
+        Bitacora::create([
+            'usuario_id' => $request->user()->id,
+            'accion' => 'ASIGNACION_PRIVILEGIOS',
+            'tabla_afectada' => 'roles',
+            'registro_id' => $rol->id,
+            'detalle' => 'Rol: ' . $rol->nombre . ', Privilegios: [' . implode(', ', $privilegiosNombres) . ']',
+            'ip' => $request->ip(),
+        ]);
+
+        $rol->load('privilegios');
+
+        $privilegiosPorModulo = [];
+        foreach ($rol->privilegios as $priv) {
+            $modulo = $priv->modulo ?: 'general';
+            if (!isset($privilegiosPorModulo[$modulo])) {
+                $privilegiosPorModulo[$modulo] = [];
+            }
+            $privilegiosPorModulo[$modulo][] = [
+                'id' => $priv->id,
+                'nombre' => $priv->nombre,
+                'descripcion' => $priv->descripcion,
+            ];
         }
-
-        // Protección contra la eliminación de roles del sistema
-        $protectedRoles = ['Administrador', 'Docente', 'Coordinador', 'Autoridad'];
-        if (in_array($rol->nombre, $protectedRoles)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No se pueden eliminar los roles predeterminados del sistema.'
-            ], 403);
-        }
-
-        $nombre = $rol->nombre;
-        $rol->delete();
-
-        // Registrar en Bitácora
-        Bitacora::registrar('Eliminación de rol', 'Nombre: ' . $nombre, 'roles', $id);
 
         return response()->json([
             'success' => true,
-            'message' => 'Rol eliminado correctamente'
+            'message' => 'Privilegios actualizados correctamente.',
+            'data' => [
+                'id' => $rol->id,
+                'nombre' => $rol->nombre,
+                'descripcion' => $rol->descripcion,
+                'privilegios' => $privilegiosPorModulo,
+            ],
         ]);
     }
 }

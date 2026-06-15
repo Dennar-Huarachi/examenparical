@@ -3,7 +3,7 @@ import api from '../services/api';
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const HORA_BASE = 7;
-const TOTAL_HORAS = 15;
+const TOTAL_HORAS = 17;
 const TOTAL_MINUTOS = TOTAL_HORAS * 60;
 
 const COLORES_MATERIA = [
@@ -14,6 +14,12 @@ const COLORES_MATERIA = [
     { bg: 'bg-cyan-100', border: 'border-cyan-300', text: 'text-cyan-800', bar: 'bg-cyan-500' },
     { bg: 'bg-amber-100', border: 'border-amber-300', text: 'text-amber-800', bar: 'bg-amber-500' },
 ];
+
+const TURNO_RANGOS = {
+    Mañana: { inicio: '07:00', fin: '12:15' },
+    Tarde: { inicio: '14:00', fin: '18:30' },
+    Noche: { inicio: '19:00', fin: '23:30' },
+};
 
 function timeToMinutes(t) {
     const [h, m] = t.split(':').map(Number);
@@ -33,7 +39,7 @@ function getColor(materiaId, index) {
 }
 
 function formatHora(t) {
-    return t.slice(0, 5);
+    return t ? t.slice(0, 5) : '—';
 }
 
 function horasDelDia() {
@@ -48,7 +54,6 @@ export default function MiCargaPage() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [toast, setToast] = useState({ visible: false, texto: '', tipo: '' });
 
     useEffect(() => {
         cargarMiCarga();
@@ -56,9 +61,8 @@ export default function MiCargaPage() {
 
     const cargarMiCarga = async () => {
         setLoading(true);
-        const token = localStorage.getItem('token');
         try {
-            const res = await api.get('/docentes/mi-carga', { headers: { Authorization: `Bearer ${token}` } });
+            const res = await api.get('/docentes/mi-carga');
             if (res.data.success) setData(res.data.data);
         } catch (error) {
             const msg = error.response?.data?.message || 'Error al cargar información';
@@ -88,7 +92,7 @@ export default function MiCargaPage() {
 
     if (!data) return null;
 
-    const { postulante, docente, horarios, horarios_por_dia, total_horas_semanales, carga_horaria_maxima, horas_disponibles } = data;
+    const { postulante, docente, horarios, total_horas_semanales, carga_horaria_maxima, horas_disponibles } = data;
     const pct = carga_horaria_maxima > 0 ? Math.min(100, Math.round((total_horas_semanales / carga_horaria_maxima) * 100)) : 0;
 
     const horariosPorDia = {};
@@ -176,6 +180,16 @@ export default function MiCargaPage() {
                                                 <span className="text-[10px] font-bold text-slate-400 -mt-2 sticky left-0">{h}</span>
                                             </div>
                                         ))}
+                                        {Object.entries(TURNO_RANGOS).map(([, r]) => {
+                                            const top = getTop(r.inicio);
+                                            const height = getHeight(r.inicio, r.fin);
+                                            return (
+                                                <div key={r.inicio}
+                                                    className="absolute left-0 right-0 border-t border-dashed border-slate-200 pointer-events-none"
+                                                    style={{ top: `${top}%`, height: `${height}%` }}
+                                                />
+                                            );
+                                        })}
                                     </div>
 
                                     {DIAS.map(dia => (
@@ -198,6 +212,11 @@ export default function MiCargaPage() {
                                                             <p className="font-semibold text-slate-600 truncate">{h.grupo?.nombre || '—'}</p>
                                                             <p className="text-slate-500 truncate">{h.aula ? `${h.aula.edificio} - ${h.aula.numero}` : '—'}</p>
                                                             <p className="text-[9px] font-mono text-slate-400 mt-0.5">{formatHora(h.hora_inicio)} - {formatHora(h.hora_fin)}</p>
+                                                            {h.turno && (
+                                                                <span className="inline-block mt-0.5 px-1 py-0.5 rounded text-[8px] font-bold bg-white/60 text-slate-600">
+                                                                    {h.turno.nombre}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 );
@@ -217,6 +236,7 @@ export default function MiCargaPage() {
                                     <tr>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Día</th>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Hora</th>
+                                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Turno</th>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Materia</th>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Grupo</th>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Aula</th>
@@ -228,6 +248,13 @@ export default function MiCargaPage() {
                                         <tr key={h.id} className="hover:bg-slate-50/50">
                                             <td className="px-4 py-3 font-semibold text-slate-900">{h.dia_semana}</td>
                                             <td className="px-4 py-3 text-slate-700 font-mono">{formatHora(h.hora_inicio)} - {formatHora(h.hora_fin)}</td>
+                                            <td className="px-4 py-3">
+                                                {h.turno ? (
+                                                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                                                        {h.turno.nombre}
+                                                    </span>
+                                                ) : '—'}
+                                            </td>
                                             <td className="px-4 py-3 text-slate-700">{h.materia?.nombre || '—'}</td>
                                             <td className="px-4 py-3 text-slate-700">{h.grupo?.nombre || '—'}</td>
                                             <td className="px-4 py-3 text-slate-700">{h.aula ? `${h.aula.edificio} - ${h.aula.numero}` : '—'}</td>

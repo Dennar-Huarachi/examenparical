@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Docente;
+use App\Models\DocenteDisponibilidad;
 use App\Models\PostulanteDocente;
 use App\Models\Gestion;
-use App\Models\Horario;
+use App\Models\HorarioBloque;
 use App\Models\Bitacora;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -44,8 +45,8 @@ class DocenteController extends Controller
 
         $docentes->each(function ($docente) {
             $pd = $docente->postulanteDocente;
-            $horasAsignadas = Horario::where('docente_id', $docente->id)
-                ->select(DB::raw("SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600) as total_hours"))
+            $horasAsignadas = HorarioBloque::where('docente_id', $docente->id)
+                ->select(DB::raw("COALESCE(SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600), 0) as total_hours"))
                 ->first();
             $docente->horas_asignadas = (float) ($horasAsignadas->total_hours ?? 0);
             $docente->carga_horaria_maxima = $pd ? (int) ($pd->carga_horaria_maxima ?? 0) : 0;
@@ -66,14 +67,14 @@ class DocenteController extends Controller
             return response()->json(['success' => false, 'message' => 'Docente no encontrado'], 404);
         }
 
-        $horarios = Horario::with(['grupo', 'materia', 'aula'])
+        $horarios = HorarioBloque::with(['grupo', 'materia', 'aula', 'turno'])
             ->where('docente_id', $id)
             ->orderBy('dia_semana')
             ->orderBy('hora_inicio')
             ->get();
 
-        $horasAsignadas = Horario::where('docente_id', $id)
-            ->select(DB::raw("SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600) as total_hours"))
+        $horasAsignadas = HorarioBloque::where('docente_id', $id)
+            ->select(DB::raw("COALESCE(SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600), 0) as total_hours"))
             ->first();
 
         $totalHoras = (float) ($horasAsignadas->total_hours ?? 0);
@@ -115,8 +116,8 @@ class DocenteController extends Controller
             return response()->json(['success' => false, 'message' => 'Postulante docente no encontrado'], 404);
         }
 
-        $horasAsignadas = Horario::where('docente_id', $id)
-            ->select(DB::raw("SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600) as total_hours"))
+        $horasAsignadas = HorarioBloque::where('docente_id', $id)
+            ->select(DB::raw("COALESCE(SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600), 0) as total_hours"))
             ->first();
         $horasActuales = (float) ($horasAsignadas->total_hours ?? 0);
 
@@ -163,16 +164,16 @@ class DocenteController extends Controller
             return response()->json(['success' => false, 'message' => 'No tienes un registro de docente activo'], 404);
         }
 
-        $horarios = Horario::with(['grupo', 'materia', 'aula'])
+        $horarios = HorarioBloque::with(['grupo', 'materia', 'aula', 'turno'])
             ->where('docente_id', $docente->id)
             ->orderBy('dia_semana')
             ->orderBy('hora_inicio')
             ->get();
 
-        $horasAsignadas = Horario::where('docente_id', $docente->id)
-            ->select(DB::raw("SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600) as total_hours"))
+        $horasAsignadas = HorarioBloque::where('docente_id', $docente->id)
+            ->select(DB::raw("COALESCE(SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600), 0) as total"))
             ->first();
-        $totalHoras = (float) ($horasAsignadas->total_hours ?? 0);
+        $totalHoras = (float) ($horasAsignadas->total ?? 0);
         $cargaMaxima = (int) ($postulante->carga_horaria_maxima ?? 0);
 
         $horariosPorDia = $horarios->groupBy('dia_semana');

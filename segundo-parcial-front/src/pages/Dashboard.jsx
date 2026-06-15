@@ -444,6 +444,112 @@ export default function Dashboard() {
                 </div>
             )}
 
+            {/* A5: POSTULANTE */}
+            {['postulante'].includes(user?.rol?.toLowerCase()) && (
+                <div className="space-y-6">
+                    {/* Tarjeta de Estado de Postulación */}
+                    <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-150 shadow-md">
+                        <h3 className="text-xl font-bold text-slate-800 mb-6 border-b pb-3 flex items-center gap-2 text-indigo-600">
+                            🎓 Mi Estado de Admisión
+                        </h3>
+                        
+                        {stats?.mi_postulacion ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Datos del Postulante */}
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 uppercase">Postulante</span>
+                                            <h4 className="text-sm font-bold text-slate-800 mt-0.5">
+                                                {stats.mi_postulacion.nombres} {stats.mi_postulacion.apellidos}
+                                            </h4>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 uppercase">Cédula de Identidad (CI)</span>
+                                            <h4 className="text-sm font-bold text-slate-800 mt-0.5">{stats.mi_postulacion.ci}</h4>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 uppercase">Carrera Principal</span>
+                                            <h4 className="text-sm font-bold text-slate-800 mt-0.5">{stats.mi_postulacion.carrera_principal || '—'}</h4>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 uppercase">Carrera Admitida</span>
+                                            <h4 className={`text-sm font-extrabold mt-0.5 ${stats.mi_postulacion.carrera_admitida ? 'text-green-600' : 'text-slate-500'}`}>
+                                                {stats.mi_postulacion.carrera_admitida || 'Pendiente de asignación'}
+                                            </h4>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Nota y Estado Final */}
+                                <div className="flex flex-col justify-center items-center p-6 bg-slate-50 border border-slate-150 rounded-2xl shadow-sm text-center">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Resultado del Proceso</span>
+                                    <div className="my-4">
+                                        <span className={`inline-flex px-4 py-2 rounded-full text-sm font-black border uppercase ${
+                                            stats.mi_postulacion.estado === 'aprobado'
+                                                ? 'bg-green-50 text-green-700 border-green-200'
+                                                : stats.mi_postulacion.estado === 'reprobado'
+                                                ? 'bg-red-50 text-red-700 border-red-200'
+                                                : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                        }`}>
+                                            {stats.mi_postulacion.estado}
+                                        </span>
+                                    </div>
+                                    <div className="text-sm font-bold text-slate-500">
+                                        Nota Final: <span className="text-3xl font-black text-slate-800 ml-1">{stats.mi_postulacion.nota_final ?? 'S/N'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-slate-400 text-sm italic">No se encontró información de postulación asociada a este usuario.</p>
+                        )}
+                    </div>
+
+                    {/* Tarjeta de Notas por Materia */}
+                    {stats?.mi_postulacion?.notas?.length > 0 && (
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-150 shadow-md">
+                            <h3 className="text-xl font-bold text-slate-800 mb-6 border-b pb-3">
+                                📊 Calificaciones por Materia
+                            </h3>
+                            <div className="overflow-x-auto rounded-xl border border-slate-100">
+                                <table className="min-w-full divide-y divide-gray-150 bg-white">
+                                    <thead className="bg-slate-50">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Materia</th>
+                                            <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Nota Promedio</th>
+                                            <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 text-sm">
+                                        {stats.mi_postulacion.notas.map((n, idx) => (
+                                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4 font-semibold text-slate-700">{n.materia}</td>
+                                                <td className="px-6 py-4 text-center font-bold text-slate-850">{n.promedio.toFixed(2)}</td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <span className={`inline-flex px-2.5 py-0.5 rounded text-xs font-bold border ${
+                                                        n.aprobado
+                                                            ? 'bg-green-50 text-green-700 border-green-150'
+                                                            : 'bg-red-50 text-red-700 border-red-150'
+                                                    }`}>
+                                                        {n.aprobado ? 'Aprobado' : 'Reprobado'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
 
         </div>
     );

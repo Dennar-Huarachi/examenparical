@@ -153,7 +153,7 @@ class GrupoController extends Controller
             return response()->json(['success' => false, 'data' => [], 'message' => 'No hay una gestión activa.'], 200);
         }
 
-        $query = Grupo::with(['turno', 'horarios.materia', 'horarios.docente.postulanteDocente'])
+        $query = Grupo::with(['turno', 'horariosBloque.materia', 'horariosBloque.docente.postulanteDocente'])
             ->where('gestion_id', $gestion->id);
 
         if ($request->filled('estado')) {
@@ -163,7 +163,7 @@ class GrupoController extends Controller
         $grupos = $query->orderBy('nombre')->get();
 
         $grupos->each(function ($grupo) {
-            $materiasConDocente = $grupo->horarios->pluck('materia_id')->unique()->count();
+            $materiasConDocente = $grupo->horariosBloque->pluck('materia_id')->unique()->count();
             $totalMaterias = \App\Models\Materia::count();
             $grupo->materias_con_docente = $materiasConDocente;
             $grupo->total_materias = $totalMaterias;
@@ -181,7 +181,7 @@ class GrupoController extends Controller
 
     public function destroy($id)
     {
-        $grupo = Grupo::withCount(['postulantes', 'horarios'])->find($id);
+        $grupo = Grupo::withCount(['postulantes', 'horariosBloque'])->find($id);
         if (!$grupo) {
             return response()->json(['success' => false, 'message' => 'Grupo no encontrado.'], 404);
         }
@@ -190,7 +190,7 @@ class GrupoController extends Controller
             return response()->json(['success' => false, 'message' => 'No se puede eliminar: el grupo tiene postulantes asignados.'], 422);
         }
 
-        if ($grupo->horarios_count > 0) {
+        if ($grupo->horarios_bloque_count > 0) {
             return response()->json(['success' => false, 'message' => 'No se puede eliminar: el grupo tiene horarios asignados.'], 422);
         }
 

@@ -40,8 +40,8 @@ class Grupo extends Model
             ->withTimestamps();
     }
 
-    public function horarios()
+    public function horariosBloque()
     {
-        return $this->hasMany(Horario::class, 'grupo_id');
+        return $this->hasMany(HorarioBloque::class, 'grupo_id');
     }
 }

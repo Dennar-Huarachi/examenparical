@@ -6,7 +6,7 @@ use App\Models\PostulanteDocente;
 use App\Models\Docente;
 use App\Models\Gestion;
 use App\Models\Bitacora;
-use App\Models\Horario;
+use App\Models\HorarioBloque;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +40,7 @@ class ContratacionController extends Controller
 
         $postulantes->each(function ($p) {
             if ($p->docente) {
-                $horasAsignadas = Horario::where('docente_id', $p->docente->id)
+                $horasAsignadas = HorarioBloque::where('docente_id', $p->docente->id)
                     ->select(DB::raw("SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600) as total_hours"))
                     ->first();
                 $p->docente->horas_asignadas = (float) ($horasAsignadas->total_hours ?? 0);
@@ -65,7 +65,7 @@ class ContratacionController extends Controller
         }
 
         if ($postulante->docente) {
-            $horasAsignadas = Horario::where('docente_id', $postulante->docente->id)
+            $horasAsignadas = HorarioBloque::where('docente_id', $postulante->docente->id)
                 ->select(DB::raw("SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600) as total_hours"))
                 ->first();
             $postulante->docente->horas_asignadas = (float) ($horasAsignadas->total_hours ?? 0);
@@ -172,7 +172,7 @@ class ContratacionController extends Controller
 
         $docente = Docente::where('postulante_docente_id', $id)->first();
         if ($docente) {
-            $tieneHorarios = Horario::where('docente_id', $docente->id)->exists();
+            $tieneHorarios = HorarioBloque::where('docente_id', $docente->id)->exists();
             if ($tieneHorarios) {
                 return response()->json(['success' => false, 'message' => 'No se puede revertir la contratación porque el docente tiene horarios asignados'], 422);
             }

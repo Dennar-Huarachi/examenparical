@@ -10,7 +10,7 @@ use App\Models\Materia;
 use App\Models\Grupo;
 use App\Models\Docente;
 use App\Models\PostulanteDocente;
-use App\Models\Horario;
+use App\Models\HorarioBloque;
 use App\Models\Gestion;
 use App\Models\Bitacora;
 use Illuminate\Http\Request;
@@ -39,7 +39,7 @@ class NotaController extends Controller
             abort(403, 'No tiene acceso a las notas de este grupo y materia.');
         }
 
-        $tieneHorario = Horario::where('docente_id', $docente->id)
+        $tieneHorario = HorarioBloque::where('docente_id', $docente->id)
             ->where('grupo_id', $grupoId)
             ->where('materia_id', $materiaId)
             ->exists();

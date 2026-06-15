@@ -29,8 +29,8 @@ class Docente extends Model
         return $this->belongsTo(PostulanteDocente::class, 'postulante_docente_id');
     }
 
-    public function horarios()
+    public function horariosBloque()
     {
-        return $this->hasMany(Horario::class, 'docente_id');
+        return $this->hasMany(HorarioBloque::class, 'docente_id');
     }
 }

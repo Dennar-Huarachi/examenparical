@@ -11,7 +11,7 @@ use App\Models\Gestion;
 use App\Models\Grupo;
 use App\Models\Docente;
 use App\Models\PostulanteDocente;
-use App\Models\Horario;
+use App\Models\HorarioBloque;
 use App\Helpers\BitacoraHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -66,7 +66,7 @@ class DashboardController extends Controller
             'carreras' => $carreras,
         ];
 
-        if (in_array($rolNombre, ['Administrador', 'Autoridad'])) {
+        if (in_array($rolNombre, ['coordinador', 'autoridad'])) {
             $actividadesRecientes = Bitacora::with('usuario')
                 ->orderBy('id', 'desc')
                 ->take(8)
@@ -84,12 +84,12 @@ class DashboardController extends Controller
             $data['actividades_recientes'] = $actividadesRecientes;
         }
 
-        if (in_array($rolNombre, ['Administrador', 'Autoridad'])) {
+        if (in_array($rolNombre, ['coordinador', 'autoridad'])) {
             $cuposTotales = CupoCarrera::where('gestion_id', $gestionId)->sum('cupo_maximo');
             $data['cupos_totales'] = $cuposTotales;
         }
 
-        if ($rolNombre === 'Coordinador') {
+        if (in_array($rolNombre, ['coordinador', 'autoridad'])) {
             $totalGrupos = $gestionId ? Grupo::where('gestion_id', $gestionId)->count() : 0;
             $totalDocentes = $gestionId ? Docente::where('gestion_id', $gestionId)->count() : 0;
 
@@ -105,13 +105,13 @@ class DashboardController extends Controller
                 $docente = Docente::where('postulante_docente_id', $postulante->id)->first();
 
                 if ($docente) {
-                    $horarios = Horario::with(['grupo', 'materia', 'aula'])
+                    $horarios = HorarioBloque::with(['grupo', 'materia', 'aula'])
                         ->where('docente_id', $docente->id)
                         ->orderBy('dia_semana')
                         ->orderBy('hora_inicio')
                         ->get();
 
-                    $totalHoras = (float) Horario::where('docente_id', $docente->id)
+                    $totalHoras = (float) HorarioBloque::where('docente_id', $docente->id)
                         ->select(DB::raw("COALESCE(SUM(EXTRACT(EPOCH FROM (hora_fin - hora_inicio)) / 3600), 0) as total_hours"))
                         ->first()
                         ->total_hours ?? 0;
@@ -130,6 +130,31 @@ class DashboardController extends Controller
             }
 
             $data['mi_carga'] = $miCarga;
+        }
+
+        if (strtolower($rolNombre) === 'postulante') {
+            $postulante = Postulante::with(['carreraPrincipal', 'carreraSecundaria', 'carreraAdmitida', 'notasMateria.materia'])
+                ->where('usuario_id', $user->id)
+                ->first();
+
+            $data['mi_postulacion'] = $postulante ? [
+                'id' => $postulante->id,
+                'ci' => $postulante->ci,
+                'nombres' => $postulante->nombres,
+                'apellidos' => $postulante->apellidos,
+                'estado' => $postulante->estado,
+                'nota_final' => $postulante->nota_final !== null ? floatval($postulante->nota_final) : null,
+                'carrera_principal' => $postulante->carreraPrincipal ? $postulante->carreraPrincipal->nombre : null,
+                'carrera_secundaria' => $postulante->carreraSecundaria ? $postulante->carreraSecundaria->nombre : null,
+                'carrera_admitida' => $postulante->carreraAdmitida ? $postulante->carreraAdmitida->nombre : null,
+                'notas' => $postulante->notasMateria->map(function ($nm) {
+                    return [
+                        'materia' => $nm->materia ? $nm->materia->nombre : 'Materia',
+                        'promedio' => floatval($nm->promedio),
+                        'aprobado' => (bool)$nm->aprobado
+                    ];
+                })
+            ] : null;
         }
 
         BitacoraHelper::registrar(

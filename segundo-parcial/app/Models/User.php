@@ -36,11 +36,41 @@ class User extends Authenticatable
         return $this->belongsTo(Rol::class, 'rol_id');
     }
 
-    public function tienePrivilegio($privilegio)
+    public function hasPrivilegio(string $nombre): bool
     {
+        if ($this->esCoordinadorOAutoridad()) {
+            return true;
+        }
+
         if (!$this->rol) {
             return false;
         }
-        return $this->rol->privilegios()->where('nombre', $privilegio)->exists();
+
+        return $this->rol->privilegios()->where('nombre', $nombre)->exists();
+    }
+
+    public function esCoordinadorOAutoridad(): bool
+    {
+        return $this->rol && in_array($this->rol->nombre, ['coordinador', 'autoridad']);
+    }
+
+    public function esDocente(): bool
+    {
+        return $this->rol && $this->rol->nombre === 'docente';
+    }
+
+    public function esPostulante(): bool
+    {
+        return $this->rol && $this->rol->nombre === 'postulante';
+    }
+
+    public function esCoordinador(): bool
+    {
+        return $this->rol && $this->rol->nombre === 'coordinador';
+    }
+
+    public function esAutoridad(): bool
+    {
+        return $this->rol && $this->rol->nombre === 'autoridad';
     }
 }

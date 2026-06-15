@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Rol;
+use App\Models\Privilegio;
 use App\Models\Bitacora;
 use App\Models\SesionBitacora;
 use App\Models\TokenRecuperacion;
@@ -195,8 +197,15 @@ class AuthController extends Controller
     {
         $request->validate([
             'password_actual' => 'required',
-            'password_nuevo' => 'required|min:8',
-            'password_confirmacion' => 'required|same:password_nuevo',
+            'password_nueva' => [
+                'required',
+                'min:8',
+                'regex:/[A-Z]/',
+                'regex:/[a-z]/',
+                'regex:/[0-9]/',
+                'regex:/[!@#$%^&*()_+\-=\[\]{}|;\':",.<>?\/`~]/',
+            ],
+            'password_nueva_confirmation' => 'required|same:password_nueva',
         ]);
 
         $usuario = $request->user();
@@ -208,21 +217,14 @@ class AuthController extends Controller
             ], 422);
         }
 
-        if ($request->password_nuevo === $request->password_actual) {
-            return response()->json([
-                'success' => false,
-                'message' => 'La nueva contrase\u00f1a debe ser diferente a la actual.'
-            ], 422);
-        }
-
-        $usuario->password = Hash::make($request->password_nuevo);
+        $usuario->password = Hash::make($request->password_nueva);
         $usuario->save();
 
         $sesionId = $request->header('X-Sesion-Id');
 
         Bitacora::create([
             'usuario_id' => $usuario->id,
-            'accion' => 'CAMBIO_PASSWORD',
+            'accion' => 'cambio_password',
             'tabla_afectada' => 'usuarios',
             'sesion_id' => $sesionId,
             'detalle' => 'Cambio de contrase\u00f1a desde el sistema',
@@ -231,7 +233,31 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Contrase\u00f1a cambiada correctamente.'
+            'message' => 'Contrase\u00f1a actualizada correctamente.'
+        ]);
+    }
+
+    public function misPrivilegios(Request $request)
+    {
+        $usuario = $request->user();
+
+        if (!$usuario) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+
+        if ($usuario->esCoordinadorOAutoridad()) {
+            $privilegios = Privilegio::pluck('nombre')->toArray();
+        } else {
+            $rol = $usuario->rol;
+            $privilegios = $rol ? $rol->privilegios->pluck('nombre')->toArray() : [];
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'rol' => $usuario->rol ? $usuario->rol->nombre : null,
+                'privilegios' => $privilegios,
+            ],
         ]);
     }
 }

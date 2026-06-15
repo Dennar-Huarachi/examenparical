@@ -181,7 +181,7 @@ class ReporteController extends Controller
         $this->verificarAcceso();
         $gestion = $this->getGestionActiva();
 
-        $grupos = Grupo::with(['turno', 'postulantes', 'horarios.materia', 'horarios.docente.postulanteDocente'])
+        $grupos = Grupo::with(['turno', 'postulantes', 'horariosBloque.materia', 'horariosBloque.docente.postulanteDocente'])
             ->where('gestion_id', $gestion->id)
             ->where('estado', 'activo')
             ->orderBy('nombre')
@@ -194,7 +194,7 @@ class ReporteController extends Controller
             $notaMin = $notas->count() > 0 ? (float) $notas->min() : null;
             $ocupacion = $g->capacidad_maxima > 0 ? round(($g->total_inscritos / $g->capacidad_maxima) * 100, 1) : 0;
 
-            $docentes = $g->horarios->map(function ($h) {
+            $docentes = $g->horariosBloque->map(function ($h) {
                 $doc = $h->docente;
                 if ($doc && $doc->postulanteDocente) {
                     return [
@@ -239,7 +239,7 @@ class ReporteController extends Controller
         $this->verificarAcceso();
         $gestion = $this->getGestionDesdeRequest($request);
 
-        $query = Grupo::with(['turno', 'postulantes', 'horarios.materia', 'horarios.docente.postulanteDocente'])
+        $query = Grupo::with(['turno', 'postulantes', 'horariosBloque.materia', 'horariosBloque.docente.postulanteDocente'])
             ->where('gestion_id', $gestion->id);
 
         if ($request->filled('turno_id')) {
@@ -296,7 +296,7 @@ class ReporteController extends Controller
             }
 
             if ($incluirHorarios) {
-                $item['horarios'] = $g->horarios->map(function ($h) {
+                $item['horarios'] = $g->horariosBloque->map(function ($h) {
                     return [
                         'dia' => $h->dia_semana,
                         'hora_inicio' => $h->hora_inicio,
@@ -367,7 +367,7 @@ class ReporteController extends Controller
         $vista = $tipo === 'grupos' ? 'reportes.grupos' : 'reportes.postulantes';
 
         if ($tipo === 'grupos') {
-            $grupos = Grupo::with(['turno', 'postulantes', 'horarios.materia', 'horarios.docente.postulanteDocente'])
+            $grupos = Grupo::with(['turno', 'postulantes', 'horariosBloque.materia', 'horariosBloque.docente.postulanteDocente'])
                 ->where('gestion_id', $gestion->id)
                 ->when($modo === 'dinamico', function ($q) use ($filtros) {
                     if (!empty($filtros['turno_id'])) $q->where('turno_id', $filtros['turno_id']);
@@ -378,7 +378,7 @@ class ReporteController extends Controller
                 ->get()
                 ->map(function ($g) {
                     $notas = $g->postulantes->pluck('nota_final')->filter(function ($n) { return !is_null($n); });
-                    $docentes = $g->horarios->map(function ($h) {
+                    $docentes = $g->horariosBloque->map(function ($h) {
                         $doc = $h->docente;
                         if ($doc && $doc->postulanteDocente) {
                             return $doc->postulanteDocente->nombres . ' ' . $doc->postulanteDocente->apellidos . ' (' . ($h->materia->nombre ?? '') . ')';

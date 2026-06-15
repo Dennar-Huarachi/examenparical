@@ -236,8 +236,8 @@ class AulaController extends Controller
             ], 404);
         }
 
-        if (DB::getSchemaBuilder()->hasTable('horarios')) {
-            $tieneHorarios = DB::table('horarios')
+        if (DB::getSchemaBuilder()->hasTable('horario_bloques')) {
+            $tieneHorarios = DB::table('horario_bloques')
                 ->where('aula_id', $id)
                 ->where('gestion_id', $aula->gestion_id)
                 ->exists();

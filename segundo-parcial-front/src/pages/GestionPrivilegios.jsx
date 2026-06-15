@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '../constants';
+import api from '../services/api';
 
 export default function GestionPrivilegios() {
     const [roles, setRoles] = useState([]);
@@ -25,10 +25,9 @@ export default function GestionPrivilegios() {
 
     const obtenerRoles = async () => {
         try {
-            const response = await fetch(`${API_URL}/roles`);
-            const res = await response.json();
-            if (res.success) {
-                setRoles(res.data);
+            const response = await api.get('/roles');
+            if (response.data.success) {
+                setRoles(response.data.data);
             } else {
                 mostrarMensaje('Error al obtener roles', 'error');
             }
@@ -41,12 +40,11 @@ export default function GestionPrivilegios() {
         setLoading(true);
         setMensaje({ texto: '', tipo: '' });
         try {
-            const response = await fetch(`${API_URL}/privilegios/${rolId}`);
-            const res = await response.json();
-            if (res.success) {
-                setPrivilegios(res.data);
+            const response = await api.get(`/privilegios/${rolId}`);
+            if (response.data.success) {
+                setPrivilegios(response.data.data);
             } else {
-                mostrarMensaje(res.message || 'Error al obtener privilegios', 'error');
+                mostrarMensaje(response.data.message || 'Error al obtener privilegios', 'error');
             }
         } catch (error) {
             mostrarMensaje('Error al conectar con el servidor', 'error');
@@ -77,29 +75,22 @@ export default function GestionPrivilegios() {
             .map(priv => priv.id);
 
         try {
-            const response = await fetch(`${API_URL}/privilegios`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    rol_id: parseInt(selectedRolId),
-                    privilegio_ids: privilegioIdsActivos
-                })
+            const response = await api.post('/privilegios', {
+                rol_id: parseInt(selectedRolId),
+                privilegio_ids: privilegioIdsActivos
             });
-            const res = await response.json();
 
-            if (res.success) {
-                mostrarMensaje(res.message || 'Privilegios actualizados con éxito', 'exito');
+            if (response.data.success) {
+                mostrarMensaje(response.data.message || 'Privilegios actualizados con éxito', 'exito');
                 // Recargar para estar al día
                 obtenerPrivilegios(selectedRolId);
             } else {
                 // Captura el bloqueo del Admin Principal
-                mostrarMensaje(res.message || 'Error al guardar los privilegios', 'error');
+                mostrarMensaje(response.data.message || 'Error al guardar los privilegios', 'error');
             }
         } catch (error) {
-            mostrarMensaje('Error de conexión con el backend', 'error');
+            const msg = error.response?.data?.message || 'Error de conexión con el backend';
+            mostrarMensaje(msg, 'error');
         } finally {
             setGuardando(false);
         }

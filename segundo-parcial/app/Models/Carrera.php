@@ -8,7 +8,7 @@ class Carrera extends Model
 {
     protected $table = 'carreras';
 
-    protected $fillable = ['nombre', 'modalidad', 'activo'];
+    protected $fillable = ['id', 'nombre', 'modalidad', 'activo'];
 
     /**
      * Conversión automática de tipos al acceder a los atributos del modelo.
