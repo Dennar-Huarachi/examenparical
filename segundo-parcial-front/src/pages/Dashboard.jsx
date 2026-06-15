@@ -224,7 +224,7 @@ export default function Dashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 text-sm">
-                                    {stats?.actividades_recientes.map((log) => (
+                                    {(stats?.actividades_recientes ?? []).map((log) => (
                                         <tr key={log.id} className="hover:bg-slate-50 transition-colors">
                                             <td className="px-6 py-3 font-semibold text-slate-500">#{log.id}</td>
                                             <td className="px-6 py-3 font-medium text-slate-700">{log.usuario}</td>

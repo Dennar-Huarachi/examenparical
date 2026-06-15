@@ -193,7 +193,7 @@ Route::middleware([\Illuminate\Http\Middleware\HandleCors::class])->group(functi
         // Docentes contratados y carga horaria
         Route::middleware('privilegio:docentes.ver')->group(function () {
             Route::get('/docentes', [DocenteController::class, 'index']);
-            Route::get('/docentes/{id}', [DocenteController::class, 'show']);
+            Route::get('/docentes/{id}', [DocenteController::class, 'show'])->whereNumber('id');
         });
         Route::middleware('privilegio:docentes.carga_horaria')->group(function () {
             Route::patch('/docentes/{id}/carga-horaria', [DocenteController::class, 'asignarCarga']);

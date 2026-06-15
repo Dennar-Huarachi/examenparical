@@ -10,7 +10,6 @@ export default function Login() {
     const [error, setError] = useState(''); 
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [imgError, setImgError] = useState(false);
 
     const handleChange = (e) => {
         setCredenciales({ ...credenciales, [e.target.name]: e.target.value });
@@ -57,24 +56,17 @@ export default function Login() {
             <div className="animate-fade-slide bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 sm:mx-0">
                 {/* Encabezado con escudo */}
                 <div className="pt-10 pb-4 px-8 flex flex-col items-center">
-                    {!imgError ? (
-                        <img
-                            src="/escudo.png"
-                            alt="Escudo FCyT"
-                            className="w-[90px] h-[90px] object-contain drop-shadow-md"
-                            onError={() => setImgError(true)}
-                        />
-                    ) : (
-                        <div className="w-[90px] h-[90px] rounded-full bg-[#1e3a5f] flex items-center justify-center shadow-md">
-                            <span className="text-white text-xl font-bold tracking-wide">FCyT</span>
-                        </div>
-                    )}
+                    <img
+                        src="/FICCTLOGO.png"
+                        alt="Logo UAGRM"
+                        className="w-24 h-24 object-contain mx-auto mb-4"
+                    />
 
-                    <h1 className="mt-4 text-lg font-bold text-[#1e3a5f] text-center leading-tight">
-                        Facultad de Ciencias y Tecnología
+                    <h1 className="mt-1 text-lg font-bold text-[#1e3a5f] text-center leading-tight">
+                        UNIVERSIDAD AUTÓNOMA GABRIEL RENÉ MORENO
                     </h1>
                     <p className="text-sm text-slate-500 text-center">
-                        Universidad Autónoma Gabriel René Moreno
+                        Facultad de Ingeniería en Ciencias de la Computación y Telecomunicaciones
                     </p>
 
                     <div className="mt-4 text-center">
@@ -82,7 +74,7 @@ export default function Login() {
                             Sistema de Admisión Universitaria
                         </p>
                         <p className="text-xs text-slate-400">
-                            CUP - Curso de Preparación
+                            Cursos Preuniversitarios
                         </p>
                     </div>
 

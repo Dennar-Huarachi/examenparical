@@ -66,7 +66,7 @@ class DashboardController extends Controller
             'carreras' => $carreras,
         ];
 
-        if (in_array($rolNombre, ['coordinador', 'autoridad'])) {
+        if (in_array($rolNombre, ['administrador', 'coordinador', 'autoridad'])) {
             $actividadesRecientes = Bitacora::with('usuario')
                 ->orderBy('id', 'desc')
                 ->take(8)
@@ -84,12 +84,12 @@ class DashboardController extends Controller
             $data['actividades_recientes'] = $actividadesRecientes;
         }
 
-        if (in_array($rolNombre, ['coordinador', 'autoridad'])) {
+        if (in_array($rolNombre, ['administrador', 'coordinador', 'autoridad'])) {
             $cuposTotales = CupoCarrera::where('gestion_id', $gestionId)->sum('cupo_maximo');
             $data['cupos_totales'] = $cuposTotales;
         }
 
-        if (in_array($rolNombre, ['coordinador', 'autoridad'])) {
+        if (in_array($rolNombre, ['administrador', 'coordinador', 'autoridad'])) {
             $totalGrupos = $gestionId ? Grupo::where('gestion_id', $gestionId)->count() : 0;
             $totalDocentes = $gestionId ? Docente::where('gestion_id', $gestionId)->count() : 0;
 
@@ -97,7 +97,7 @@ class DashboardController extends Controller
             $data['total_docentes'] = $totalDocentes;
         }
 
-        if ($rolNombre === 'Docente') {
+        if (strtolower($rolNombre) === 'docente') {
             $miCarga = null;
             $postulante = PostulanteDocente::where('usuario_id', $user->id)->first();
 

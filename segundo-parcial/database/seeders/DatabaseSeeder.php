@@ -9,6 +9,7 @@ use App\Models\Gestion;
 use App\Models\CupoCarrera;
 use App\Models\Bitacora;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
@@ -17,6 +18,9 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Ejecutar seeder de roles y privilegios
         $this->call(RolesPrivilegiosSeeder::class);
+
+        // 1b. Ejecutar seeder de usuarios de prueba por rol
+        $this->call(UsuariosSeeder::class);
 
         // 2. Seed Gestiones
         $gestion = Gestion::updateOrCreate(['id' => 1], [
@@ -91,6 +95,9 @@ class DatabaseSeeder extends Seeder
                 'activo' => true,
             ]);
         }
+
+        // Resetear secuencia de carreras para evitar conflictos al crear nuevas
+        DB::statement("SELECT setval('carreras_id_seq', (SELECT COALESCE(MAX(id), 1) FROM carreras))");
 
         // 5. Seed Cupos Carrera
         $cupos = [
