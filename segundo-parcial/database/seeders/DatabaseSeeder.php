@@ -105,7 +105,7 @@ class DatabaseSeeder extends Seeder
             [
                 'nombre' => 'Admin',
                 'apellido' => 'Principal',
-                'email' => 'admin@admin.com',
+                'email' => 'rojasgutierrezkristenalexis@gmail.com',
                 'rol' => 'Administrador'
             ],
             [
@@ -172,7 +172,7 @@ class DatabaseSeeder extends Seeder
 
         // 7. Seed Initial Activity Log
         Bitacora::create([
-            'usuario_id' => User::where('email', 'admin@admin.com')->first()->id,
+            'usuario_id' => User::where('email', 'rojasgutierrezkristenalexis@gmail.com')->first()->id,
             'accion' => 'Inicialización del Sistema',
             'tabla_afectada' => 'usuarios',
             'registro_id' => 1,
