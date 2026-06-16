@@ -309,7 +309,7 @@ export default function GruposPage() {
                     {/* Info panel responsive */}
                     <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-5 mb-4 sm:mb-6">
                         <h3 className="font-bold text-slate-700 text-xs sm:text-sm uppercase tracking-wider mb-3">Postulantes inscritos</h3>
-                        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-4">
                             {[
                                 { label: 'Inscritos', value: statsCalc?.total_inscritos ?? 0, color: 'text-slate-900' },
                                 { label: 'Grupos nec.', value: statsCalc?.grupos_necesarios ?? 0, color: 'text-blue-600' },
@@ -435,7 +435,7 @@ export default function GruposPage() {
             {tab === 'asignar' && (
                 <>
                     <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-5 mb-4 sm:mb-6">
-                        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-4">
                             <div className="bg-slate-50 rounded-xl p-2 sm:p-4 text-center">
                                 <p className="text-xl sm:text-3xl font-black text-slate-900">{estAsignacion?.total_inscritos ?? 0}</p>
                                 <p className="text-[9px] sm:text-xs font-bold text-slate-400 uppercase mt-0.5">Total insc.</p>

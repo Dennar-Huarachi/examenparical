@@ -20,6 +20,104 @@ class GrupoController extends Controller
     }
 
     // ================================================================
+    // CU: CRUD individual de grupos
+    // ================================================================
+
+    public function store(Request $request)
+    {
+        $validador = Validator::make($request->all(), [
+            'nombre'     => 'required|string|max:200',
+            'turno_id'   => 'required|integer|exists:turnos,id',
+            'capacidad'  => 'required|integer|min:1',
+        ]);
+
+        if ($validador->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validador->errors()->first()
+            ], 422);
+        }
+
+        $gestion = $this->obtenerGestionActiva();
+        if (!$gestion) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay una gestión activa. Cree o active una gestión primero.'
+            ], 422);
+        }
+
+        $grupo = Grupo::create([
+            'nombre'           => trim($request->nombre),
+            'turno_id'         => $request->turno_id,
+            'capacidad_maxima' => $request->capacidad,
+            'gestion_id'       => $gestion->id,
+            'modalidad'        => 'presencial',
+            'total_inscritos'  => 0,
+            'estado'           => 'activo',
+        ]);
+
+        $grupo->load('turno');
+
+        Bitacora::registrar(
+            'Creación de grupo',
+            "Nombre: {$grupo->nombre}, Turno: {$grupo->turno->nombre}, Capacidad: {$grupo->capacidad_maxima}",
+            'grupos',
+            $grupo->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'data'    => $grupo,
+            'message' => "Grupo \"{$grupo->nombre}\" creado correctamente.",
+        ], 200);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $grupo = Grupo::find($id);
+        if (!$grupo) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Grupo no encontrado.'
+            ], 404);
+        }
+
+        $validador = Validator::make($request->all(), [
+            'nombre'     => 'required|string|max:200',
+            'turno_id'   => 'required|integer|exists:turnos,id',
+            'capacidad'  => 'required|integer|min:1',
+        ]);
+
+        if ($validador->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validador->errors()->first()
+            ], 422);
+        }
+
+        $grupo->update([
+            'nombre'           => trim($request->nombre),
+            'turno_id'         => $request->turno_id,
+            'capacidad_maxima' => $request->capacidad,
+        ]);
+
+        $grupo->load('turno');
+
+        Bitacora::registrar(
+            'Modificación de grupo',
+            "Nombre: {$grupo->nombre}, Turno: {$grupo->turno->nombre}, Capacidad: {$grupo->capacidad_maxima}",
+            'grupos',
+            $grupo->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'data'    => $grupo,
+            'message' => "Grupo \"{$grupo->nombre}\" actualizado correctamente.",
+        ], 200);
+    }
+
+    // ================================================================
     // CU22: Calcular / Recalcular grupos
     // ================================================================
 

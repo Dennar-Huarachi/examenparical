@@ -186,7 +186,12 @@ class MateriaController extends Controller
         }
 
         // Verificar si la materia tiene notas asociadas (tabla notas o notas_materia)
-        $tieneNotas = DB::table('notas')->where('materia_id', $id)->exists();
+        $tieneNotas = DB::table('notas')->whereExists(function ($query) use ($id) {
+            $query->select(DB::raw(1))
+                  ->from('examenes')
+                  ->whereColumn('notas.examen_id', 'examenes.id')
+                  ->where('examenes.materia_id', $id);
+        })->exists();
 
         // También verificar en notas_materia si esa tabla existe
         $tieneNotasMateria = false;

@@ -32,7 +32,7 @@ class PostulanteImportController extends Controller
         }
 
         $rolPostulante = Rol::firstOrCreate(
-            ['nombre' => 'postulante_alumno'],
+            ['nombre' => 'postulante'],
             ['descripcion' => 'Postulante a la universidad (alumno)']
         );
 
@@ -104,18 +104,15 @@ class PostulanteImportController extends Controller
                     throw new \Exception('Nombres y apellidos son obligatorios.');
                 }
 
-                $carreraPrincipal = null;
                 $carreraPpalNombre = trim($fila['carrera_principal'] ?? '');
-                if (!empty($carreraPpalNombre)) {
-                    $key = mb_strtolower($carreraPpalNombre);
-                    $carreraPrincipal = $carrerasCache->get($key);
-                    if (!$carreraPrincipal) {
-                        $errores[] = [
-                            'fila' => $filaNum,
-                            'ci' => $ci,
-                            'motivo' => "Carrera principal '{$carreraPpalNombre}' no encontrada. Se ignoró.",
-                        ];
-                    }
+                if (empty($carreraPpalNombre)) {
+                    throw new \Exception('La carrera principal es obligatoria.');
+                }
+
+                $key = mb_strtolower($carreraPpalNombre);
+                $carreraPrincipal = $carrerasCache->get($key);
+                if (!$carreraPrincipal) {
+                    throw new \Exception("Carrera principal '{$carreraPpalNombre}' no encontrada en el sistema.");
                 }
 
                 $carreraSecundaria = null;
@@ -155,12 +152,12 @@ class PostulanteImportController extends Controller
                     'correo'               => $correo,
                     'colegio_procedencia'  => trim($fila['colegio_procedencia'] ?? ''),
                     'ciudad'               => trim($fila['ciudad'] ?? ''),
-                    'carrera_principal_id' => $carreraPrincipal ? $carreraPrincipal->id : null,
+                    'carrera_principal_id' => $carreraPrincipal->id,
                     'carrera_secundaria_id'=> $carreraSecundaria ? $carreraSecundaria->id : null,
                     'titulo_bachiller'     => in_array(mb_strtoupper(trim($fila['titulo_bachiller'] ?? '')), ['SI', 'S', 'YES', '1', 'TRUE']),
                     'año_bachillerato'     => !empty($fila['año_bachillerato']) ? (int) $fila['año_bachillerato'] : null,
                     'turno_preferido'      => trim($fila['turno_preferido'] ?? ''),
-                    'estado'               => 'pendiente',
+                    'estado'               => 'pendiente_pago',
                     'gestion_id'           => $gestion->id,
                     'usuario_id'           => $usuario->id,
                 ]);

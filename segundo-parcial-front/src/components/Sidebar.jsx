@@ -54,6 +54,7 @@ const modulos = [
       { label: 'Gestionar usuarios', path: '/usuarios', roles: ADMIN_COORD, privilege: 'usuarios.ver' },
       { label: 'Gestionar postulantes', path: '/postulantes', roles: ADMIN_COORD, privilege: 'postulantes.ver' },
       { label: 'Verificar pago y requisitos', path: '/pagos', roles: ADMIN_COORD, privilege: 'pagos.ver' },
+      { label: 'Probar pago', path: '/probar-pago', roles: ADMIN_COORD, privilege: 'pagos.ver' },
       { label: 'Gestionar contratación de docentes', path: '/contratacion', roles: ADMIN_COORD, privilege: 'docentes.contratar' },
       { label: 'Asignar carga horaria a docentes', path: '/docentes', roles: ADMIN_COORD, privilege: 'docentes.carga_horaria' },
       { label: 'Consultar mi carga horaria', path: '/mi-carga', roles: ['administrador', 'coordinador', 'docente'], privilege: 'mi_info.ver' },
@@ -205,8 +206,18 @@ export default function Sidebar() {
           </NavLink>
         </div>
 
+        {/* Mi inscripción - visible si tiene privilegio */}
+        {user?.privilegios?.includes('postulante.registro') && (
+          <div className="px-4 pb-1">
+            <NavLink to="/mi-inscripcion" className={dashboardClases}>
+              <I d={S.clipboard} />
+              <span>Mi inscripción</span>
+            </NavLink>
+          </div>
+        )}
+
         {/* Módulos colapsables */}
-        <nav className="flex-1 px-4 pb-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-4 pb-4 space-y-1 overflow-y-auto sidebar-scroll">
           {modulosVisibles.map((mod, idx) => {
             const algunaActiva = mod.items.some(item =>
               item.path && (location.pathname === item.path || location.pathname.startsWith(item.path + '/'))

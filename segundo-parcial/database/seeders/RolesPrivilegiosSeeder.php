@@ -62,7 +62,10 @@ class RolesPrivilegiosSeeder extends Seeder
             ['nombre' => 'docentes.carga_horaria', 'descripcion' => 'Asignar carga horaria', 'modulo' => 'docentes'],
             // Grupos
             ['nombre' => 'grupos.ver', 'descripcion' => 'Ver grupos', 'modulo' => 'grupos'],
-            ['nombre' => 'grupos.calcular', 'descripcion' => 'Calcular y crear grupos', 'modulo' => 'grupos'],
+            ['nombre' => 'grupos.crear', 'descripcion' => 'Crear grupos manualmente', 'modulo' => 'grupos'],
+            ['nombre' => 'grupos.editar', 'descripcion' => 'Editar grupos', 'modulo' => 'grupos'],
+            ['nombre' => 'grupos.eliminar', 'descripcion' => 'Eliminar grupos', 'modulo' => 'grupos'],
+            ['nombre' => 'grupos.calcular', 'descripcion' => 'Calcular y crear grupos automáticamente', 'modulo' => 'grupos'],
             ['nombre' => 'grupos.asignar_postulantes', 'descripcion' => 'Asignar postulantes a grupos', 'modulo' => 'grupos'],
             ['nombre' => 'grupos.asignar_docentes', 'descripcion' => 'Asignar docentes y aulas a grupos', 'modulo' => 'grupos'],
             // Exámenes y notas
@@ -80,6 +83,8 @@ class RolesPrivilegiosSeeder extends Seeder
             ['nombre' => 'mi_info.ver', 'descripcion' => 'Ver mi información y carga horaria', 'modulo' => 'mi_info'],
             // Mi postulación (postulante)
             ['nombre' => 'mi_postulacion.ver', 'descripcion' => 'Ver mi postulación, notas y estado', 'modulo' => 'mi_postulacion'],
+            // Mi inscripción (postulante)
+            ['nombre' => 'postulante.registro', 'descripcion' => 'Acceder al formulario de inscripción y pago', 'modulo' => 'postulante'],
         ];
 
         $roles = [
@@ -92,6 +97,7 @@ class RolesPrivilegiosSeeder extends Seeder
                 'privilegios' => [
                     'dashboard.ver',
                     'mi_postulacion.ver',
+                    'postulante.registro',
                 ],
             ],
             'docente' => [
@@ -121,7 +127,7 @@ class RolesPrivilegiosSeeder extends Seeder
                     'postulantes.ver', 'postulantes.crear', 'postulantes.editar', 'postulantes.eliminar',
                     'docentes.ver', 'docentes.contratar', 'docentes.editar', 'docentes.carga_horaria',
                     // Proceso académico
-                    'grupos.ver', 'grupos.calcular', 'grupos.asignar_postulantes', 'grupos.asignar_docentes',
+                    'grupos.ver', 'grupos.crear', 'grupos.editar', 'grupos.eliminar', 'grupos.calcular', 'grupos.asignar_postulantes', 'grupos.asignar_docentes',
                     'notas.ver', 'notas.registrar', 'notas.calcular',
                     // Reportes
                     'reportes.ver', 'reportes.exportar',
@@ -139,57 +145,45 @@ class RolesPrivilegiosSeeder extends Seeder
             ],
         ];
 
-        // Limpiar datos existentes y resetear secuencias
-        DB::statement('SET session_replication_role = replica;');
-        DB::table('rol_privilegio')->truncate();
-        DB::statement('ALTER SEQUENCE privilegios_id_seq RESTART WITH 1');
-        Privilegio::truncate();
-        DB::statement('ALTER SEQUENCE roles_id_seq RESTART WITH 1');
-        Rol::truncate();
-        DB::statement('SET session_replication_role = default;');
-
-        // Insertar privilegios
+        // Insertar o actualizar privilegios sin borrar existentes
         $privilegioIds = [];
-        foreach ($privilegios as $i => $p) {
-            $priv = Privilegio::create([
-                'nombre' => $p['nombre'],
-                'descripcion' => $p['descripcion'],
-                'modulo' => $p['modulo'],
-            ]);
+        foreach ($privilegios as $p) {
+            $priv = Privilegio::firstOrCreate(
+                ['nombre' => $p['nombre']],
+                [
+                    'descripcion' => $p['descripcion'],
+                    'modulo' => $p['modulo'],
+                ]
+            );
             $privilegioIds[$p['nombre']] = $priv->id;
         }
 
-        // Insertar roles
+        // Insertar o actualizar roles sin borrar existentes
+        $rolesCreados = [];
         foreach ($roles as $nombre => $data) {
-            $rol = Rol::create([
-                'nombre' => $nombre,
-                'descripcion' => $data['descripcion'],
-            ]);
+            $rol = Rol::firstOrCreate(
+                ['nombre' => $nombre],
+                ['descripcion' => $data['descripcion']]
+            );
+            $rolesCreados[$nombre] = $rol;
 
+            // Asignar privilegios al rol sin duplicar
             if ($data['privilegios'] === '*') {
-                $inserts = [];
                 foreach ($privilegioIds as $privId) {
-                    $inserts[] = [
-                        'rol_id' => $rol->id,
-                        'privilegio_id' => $privId,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
+                    DB::table('rol_privilegio')->updateOrInsert(
+                        ['rol_id' => $rol->id, 'privilegio_id' => $privId],
+                        []
+                    );
                 }
-                DB::table('rol_privilegio')->insert($inserts);
             } else {
-                $inserts = [];
                 foreach ($data['privilegios'] as $pn) {
                     if (isset($privilegioIds[$pn])) {
-                        $inserts[] = [
-                            'rol_id' => $rol->id,
-                            'privilegio_id' => $privilegioIds[$pn],
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
+                        DB::table('rol_privilegio')->updateOrInsert(
+                            ['rol_id' => $rol->id, 'privilegio_id' => $privilegioIds[$pn]],
+                            []
+                        );
                     }
                 }
-                DB::table('rol_privilegio')->insert($inserts);
             }
         }
 

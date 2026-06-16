@@ -1,5 +1,4 @@
 import { createContext, useState, useEffect } from 'react';
-import axios from 'axios'; // 🛠️ Corregido: Importamos axios limpio para la cookie
 import api from '../services/api';
 import { AuthContext } from './AuthContext';
 export { AuthContext };
@@ -24,14 +23,6 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (email, password) => {
-        try {
-            // 🛠️ Corregido: Llamamos a la cookie sin el prefijo '/api' usando axios directo
-            await axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie', { withCredentials: true });
-        } catch (error) {
-            console.log('Error o bypass de cookie Sanctum:', error);
-        }
-
-        // Enviamos los datos limpios al backend
         const { data } = await api.post('/login', { email, password });
         
         // 🛠️ Corregido: Soportar tanto 'access_token' como 'token' por si acaso

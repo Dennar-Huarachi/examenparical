@@ -110,7 +110,7 @@ class DocenteImportController extends Controller
                     'materia_preferida'    => trim($fila['materia_preferida'] ?? ''),
                     'disponibilidad_horaria' => trim($fila['disponibilidad_horaria'] ?? ''),
                     'carga_horaria_maxima' => $cargaMaxima,
-                    'estado'               => 'pendiente',
+                    'estado'               => 'postulante',
                     'gestion_id'           => $gestion->id,
                     'usuario_id'           => $usuario->id,
                 ]);

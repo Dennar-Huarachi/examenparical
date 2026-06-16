@@ -25,6 +25,9 @@ import BitacoraPage from './pages/BitacoraPage';
 import RecuperarPasswordPage from './pages/RecuperarPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import CambiarPasswordPage from './pages/CambiarPasswordPage';
+import PagoRegistro from './pages/PagoRegistro';
+import ProbarPagoPage from './pages/ProbarPagoPage';
+import MiInscripcionPage from './pages/MiInscripcionPage';
 
 // Componente para proteger rutas de accesos no autenticados
 function ProtectedRoute({ children }) {
@@ -64,6 +67,7 @@ export default function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/recuperar-password" element={<RecuperarPasswordPage />} />
                     <Route path="/reset-password" element={<ResetPasswordPage />} />
+                    <Route path="/pago-registro" element={<PagoRegistro />} />
 
                     {/* Rutas Privadas envueltas en el Layout */}
                     <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -78,6 +82,12 @@ export default function App() {
                         <Route path="/pagos" element={
                             <PrivilegeProtectedRoute privilege="pagos.ver">
                                 <PagosPage />
+                            </PrivilegeProtectedRoute>
+                        } />
+
+                        <Route path="/probar-pago" element={
+                            <PrivilegeProtectedRoute privilege="pagos.ver">
+                                <ProbarPagoPage />
                             </PrivilegeProtectedRoute>
                         } />
 
@@ -159,6 +169,11 @@ export default function App() {
 
                         <Route path="/mi-carga" element={<MiCargaPage />} />
 
+                        <Route path="/mi-inscripcion" element={
+                            <PrivilegeProtectedRoute privilege="postulante.registro">
+                                <MiInscripcionPage />
+                            </PrivilegeProtectedRoute>
+                        } />
                         <Route path="/cambiar-contrasena" element={<CambiarPasswordPage />} />
                         <Route path="/cambiar-password" element={<Navigate to="/cambiar-contrasena" replace />} />
                     </Route>

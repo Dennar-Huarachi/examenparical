@@ -24,7 +24,11 @@ class Postulante extends Model
         'carrera_secundaria_id',
         'titulo_bachiller',
         'año_bachillerato',
+        'nota_titulo_bachiller',
         'turno_preferido',
+        'trabaja',
+        'discapacidad',
+        'tipo_discapacidad',
         'otros',
         'estado',
         'nota_final',
@@ -38,6 +42,9 @@ class Postulante extends Model
         'fecha_nacimiento' => 'date',
         'año_bachillerato' => 'integer',
         'nota_final'       => 'decimal:2',
+        'titulo_bachiller' => 'boolean',
+        'trabaja'          => 'boolean',
+        'discapacidad'     => 'boolean',
     ];
 
     public function carreraPrincipal()

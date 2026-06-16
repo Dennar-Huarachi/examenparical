@@ -55,7 +55,7 @@ class CarreraController extends Controller
     public function store(Request $request)
     {
         $validador = Validator::make($request->all(), [
-            'nombre'      => 'required|string|max:200|unique:carreras,nombre',
+            'nombre'      => 'required|string|max:200|unique:carreras,nombre,NULL,id,modalidad,' . $request->modalidad,
             'modalidad'   => 'required|string|in:presencial,virtual',
             'activo'      => 'nullable|boolean',
             'cupo_maximo' => 'nullable|integer|min:0',
@@ -127,7 +127,7 @@ class CarreraController extends Controller
 
         $validador = Validator::make($request->all(), [
             // Ignora el registro actual al validar unicidad del nombre
-            'nombre'      => 'required|string|max:200|unique:carreras,nombre,' . $id,
+            'nombre'      => 'required|string|max:200|unique:carreras,nombre,' . $id . ',id,modalidad,' . $request->modalidad,
             'modalidad'   => 'required|string|in:presencial,virtual',
             'activo'      => 'required|boolean',
             'cupo_maximo' => 'nullable|integer|min:0',

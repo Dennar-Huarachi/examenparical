@@ -27,6 +27,7 @@ use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\DocenteDisponibilidadController;
 use App\Http\Controllers\CargaHorariaController;
 use App\Http\Controllers\DistribucionCargaController;
+use App\Http\Controllers\PostulanteRegistroController;
 
 Route::middleware([\Illuminate\Http\Middleware\HandleCors::class])->group(function () {
 
@@ -34,6 +35,11 @@ Route::middleware([\Illuminate\Http\Middleware\HandleCors::class])->group(functi
     // RUTAS FLUJO POSTULANTES Y PAGOS (públicas)
     // ==========================================
     Route::post('/pagos/stripe', [PagoController::class, 'stripePayment']);
+    Route::post('/stripe/create-payment-intent', [PagoController::class, 'createPaymentIntent']);
+    Route::post('/stripe/confirm-payment', [PagoController::class, 'confirmPayment']);
+    Route::post('/stripe/webhook', [PagoController::class, 'stripeWebhook']);
+    Route::post('/stripe/test-payment-intent', [PagoController::class, 'testPaymentIntent']);
+    Route::post('/stripe/test-confirm', [PagoController::class, 'testConfirmPayment']);
 
     // ==========================================
     // RUTAS AUTENTICACIÓN (públicas)
@@ -46,6 +52,17 @@ Route::middleware([\Illuminate\Http\Middleware\HandleCors::class])->group(functi
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/cambiar-password', [AuthController::class, 'cambiarPassword']);
         Route::get('/auth/mis-privilegios', [AuthController::class, 'misPrivilegios']);
+    });
+
+    // ==========================================
+    // RUTAS AUTOINSCRIPCIÓN POSTULANTE (autenticado)
+    // ==========================================
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/postulante-registro/mi-registro', [PostulanteRegistroController::class, 'miRegistro']);
+        Route::get('/postulante-registro/carreras', [PostulanteRegistroController::class, 'carrerasDisponibles']);
+        Route::post('/postulante-registro/pago-stripe', [PostulanteRegistroController::class, 'pagoStripe']);
+        Route::post('/postulante-registro/pago-caja', [PostulanteRegistroController::class, 'pagoCaja']);
+        Route::post('/postulante-registro/completar-formulario', [PostulanteRegistroController::class, 'completarFormulario']);
     });
 
     // ==========================================
@@ -167,6 +184,12 @@ Route::middleware([\Illuminate\Http\Middleware\HandleCors::class])->group(functi
             Route::get('/grupos', [GrupoController::class, 'index']);
             Route::get('/grupos/{id}/postulantes', [GrupoController::class, 'postulantesDeGrupo']);
             Route::get('/grupos/estadisticas-asignacion', [GrupoController::class, 'estadisticasAsignacion']);
+        });
+        Route::middleware('privilegio:grupos.crear')->group(function () {
+            Route::post('/grupos', [GrupoController::class, 'store']);
+        });
+        Route::middleware('privilegio:grupos.editar')->group(function () {
+            Route::put('/grupos/{id}', [GrupoController::class, 'update']);
         });
         Route::middleware('privilegio:grupos.calcular')->group(function () {
             Route::post('/grupos/calcular', [GrupoController::class, 'calcular']);

@@ -128,22 +128,22 @@ export default function DocentesPage() {
                 <p className="text-slate-500 mt-1 text-sm">Administra la disponibilidad y carga horaria de los docentes contratados.</p>
             </div>
 
-            <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 text-center">
-                    <p className="text-2xl font-black text-slate-900">{totalDocentes}</p>
-                    <p className="text-xs font-bold text-slate-400 uppercase">Total docentes</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3 sm:p-4 text-center">
+                    <p className="text-xl sm:text-2xl font-black text-slate-900">{totalDocentes}</p>
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase">Total docentes</p>
                 </div>
-                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 text-center">
-                    <p className="text-2xl font-black text-green-600">{conCarga}</p>
-                    <p className="text-xs font-bold text-slate-400 uppercase">Con carga asignada</p>
+                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3 sm:p-4 text-center">
+                    <p className="text-xl sm:text-2xl font-black text-green-600">{conCarga}</p>
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase">Con carga</p>
                 </div>
-                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 text-center">
-                    <p className="text-2xl font-black text-slate-400">{sinCarga}</p>
-                    <p className="text-xs font-bold text-slate-400 uppercase">Sin carga asignada</p>
+                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3 sm:p-4 text-center">
+                    <p className="text-xl sm:text-2xl font-black text-slate-400">{sinCarga}</p>
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase">Sin carga</p>
                 </div>
-                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 text-center">
-                    <p className="text-2xl font-black text-blue-600">{promedioHoras}</p>
-                    <p className="text-xs font-bold text-slate-400 uppercase">Promedio hrs/sem</p>
+                <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3 sm:p-4 text-center">
+                    <p className="text-xl sm:text-2xl font-black text-blue-600">{promedioHoras}</p>
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase">Promedio hrs/sem</p>
                 </div>
             </div>
 

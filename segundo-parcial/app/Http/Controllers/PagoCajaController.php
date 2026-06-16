@@ -33,9 +33,22 @@ class PagoCajaController extends Controller
             $pago->postulante = Postulante::where('pago_id', $pago->id)->first();
         });
 
+        $totalRecaudado = Pago::where('gestion_id', $gestion->id)
+            ->whereIn('estado', ['verificado', 'confirmado'])
+            ->sum('monto');
+
+        $conteos = [
+            'pendiente'   => Pago::where('gestion_id', $gestion->id)->where('estado', 'pendiente')->count(),
+            'verificado'  => Pago::where('gestion_id', $gestion->id)->where('estado', 'verificado')->count(),
+            'confirmado'  => Pago::where('gestion_id', $gestion->id)->where('estado', 'confirmado')->count(),
+            'rechazado'   => Pago::where('gestion_id', $gestion->id)->where('estado', 'rechazado')->count(),
+        ];
+
         return response()->json([
             'success' => true,
             'data' => $pagos,
+            'total_recaudado' => $totalRecaudado,
+            'conteos' => $conteos,
             'message' => 'Listado de pagos'
         ], 200);
     }
@@ -147,15 +160,16 @@ class PagoCajaController extends Controller
             return response()->json(['success' => false, 'message' => 'Pago no encontrado'], 404);
         }
 
-        if ($pago->estado !== 'pendiente') {
+        if (!in_array($pago->estado, ['pendiente', 'confirmado'])) {
             return response()->json(['success' => false, 'message' => 'El pago ya fue procesado'], 422);
         }
 
-        if ((float) $pago->monto !== 700.0) {
-            return response()->json(['success' => false, 'message' => 'El monto debe ser exactamente 700 Bs'], 422);
-        }
-
         $pago->update(['estado' => 'verificado']);
+
+        $postulante = Postulante::where('pago_id', $pago->id)->first();
+        if ($postulante && $postulante->estado === 'pago_en_verificacion') {
+            $postulante->update(['estado' => 'pago_verificado']);
+        }
 
         Bitacora::registrar(
             'Verificación de pago',

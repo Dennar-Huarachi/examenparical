@@ -173,11 +173,11 @@ class PostulanteController extends Controller
 
         DB::beginTransaction();
         try {
-            $rolPostulante = Rol::where('nombre', 'postulante_alumno')->first();
+            $rolPostulante = Rol::where('nombre', 'postulante')->first();
             if (!$rolPostulante) {
                 $rolPostulante = Rol::create([
-                    'nombre' => 'postulante_alumno',
-                    'descripcion' => 'Postulante a la universidad (alumno)'
+                    'nombre' => 'postulante',
+                    'descripcion' => 'Postulante a la universidad'
                 ]);
             }
 
