@@ -1,6 +1,7 @@
-FROM php:8.3-cli
+FROM php:8.3-fpm
 
 RUN apt-get update && apt-get install -y \
+    nginx \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -19,4 +20,13 @@ COPY . .
 
 RUN composer install --optimize-autoloader --no-scripts --no-interaction
 
-CMD sh -c 'php artisan serve --host=0.0.0.0'
+# Nginx config
+COPY nginx.conf /etc/nginx/sites-enabled/default
+
+# Entrypoint
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+EXPOSE 8080
+
+ENTRYPOINT ["docker-entrypoint.sh"]
