@@ -68,6 +68,8 @@ Route::middleware([\Illuminate\Http\Middleware\HandleCors::class])->group(functi
         // Dashboard
         Route::middleware('privilegio:dashboard.ver')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'getStats']);
+            Route::get('/dashboard/rendimiento-gestiones', [DashboardController::class, 'rendimientoGestiones']);
+            Route::get('/dashboard/top-docente', [DashboardController::class, 'topDocente']);
         });
 
         // Gestión Académica

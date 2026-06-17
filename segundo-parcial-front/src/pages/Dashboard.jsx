@@ -5,6 +5,8 @@ import api from '../services/api';
 export default function Dashboard() {
     const { user } = useContext(AuthContext);
     const [stats, setStats] = useState(null);
+    const [rendimientoGestiones, setRendimientoGestiones] = useState([]);
+    const [topDocente, setTopDocente] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -22,11 +24,21 @@ export default function Dashboard() {
     const cargarEstadisticas = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/dashboard', authHeaders());
-            if (response.data.success) {
-                setStats(response.data.data);
+            const [resDashboard, resRendimiento, resTop] = await Promise.all([
+                api.get('/dashboard', authHeaders()),
+                api.get('/dashboard/rendimiento-gestiones', authHeaders()),
+                api.get('/dashboard/top-docente', authHeaders()),
+            ]);
+            if (resDashboard.data.success) {
+                setStats(resDashboard.data.data);
             } else {
                 setError('No se pudieron cargar las estadísticas.');
+            }
+            if (resRendimiento.data.success) {
+                setRendimientoGestiones(resRendimiento.data.data);
+            }
+            if (resTop.data.success) {
+                setTopDocente(resTop.data.data);
             }
         } catch (err) {
             console.error(err);
@@ -202,6 +214,114 @@ export default function Dashboard() {
                                 )}
                             </div>
                         </div>
+                    </div>
+
+                    {/* Rendimiento Académico por Gestiones */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-800 mb-4">Rendimiento Académico por Gestión</h3>
+                        {rendimientoGestiones.length > 0 ? (
+                            <div className="overflow-x-auto rounded-xl border border-slate-100">
+                                <table className="min-w-full divide-y divide-gray-100">
+                                    <thead className="bg-slate-50">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Gestión</th>
+                                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Total Post.</th>
+                                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Prom. Notas</th>
+                                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Aprobados</th>
+                                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Reprobados</th>
+                                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Tasa Aprob.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 text-sm">
+                                        {rendimientoGestiones.map((r) => (
+                                            <tr key={r.gestion_id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-4 py-3 font-semibold text-slate-700">{r.gestion_codigo}</td>
+                                                <td className="px-4 py-3 text-center font-bold text-slate-800">{r.total_postulantes}</td>
+                                                <td className="px-4 py-3 text-center font-bold text-slate-800">{r.promedio_notas}</td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className="inline-flex px-2.5 py-0.5 rounded text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                                                        {r.aprobados}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className="inline-flex px-2.5 py-0.5 rounded text-xs font-bold bg-red-50 text-red-700 border border-red-200">
+                                                        {r.reprobados}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className={`inline-flex px-2.5 py-0.5 rounded text-xs font-bold ${
+                                                        r.tasa_aprobacion >= 60
+                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                                                    }`}>
+                                                        {r.tasa_aprobacion}%
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <p className="text-slate-400 text-sm text-center py-4">No hay datos de rendimiento disponibles.</p>
+                        )}
+                    </div>
+
+                    {/* Top Docente con Mayor Aprobación */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-800 mb-4">Docentes con Mayor Aprobación de Alumnos</h3>
+                        {topDocente.length > 0 ? (
+                            <div className="overflow-x-auto rounded-xl border border-slate-100">
+                                <table className="min-w-full divide-y divide-gray-100">
+                                    <thead className="bg-slate-50">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">#</th>
+                                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Docente</th>
+                                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Total Alumnos</th>
+                                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Aprobados</th>
+                                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Tasa de Aprobación</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 text-sm">
+                                        {topDocente.map((d, i) => (
+                                            <tr key={d.docente_id} className={`hover:bg-slate-50/50 transition-colors ${i === 0 ? 'bg-amber-50/50' : ''}`}>
+                                                <td className="px-4 py-3 font-bold text-slate-500">
+                                                    {i === 0 ? (
+                                                        <span className="text-lg">🥇</span>
+                                                    ) : i === 1 ? (
+                                                        <span className="text-lg">🥈</span>
+                                                    ) : i === 2 ? (
+                                                        <span className="text-lg">🥉</span>
+                                                    ) : (
+                                                        `#${i + 1}`
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 font-semibold text-slate-700">{d.nombre}</td>
+                                                <td className="px-4 py-3 text-center font-bold text-slate-800">{d.total_alumnos}</td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className="inline-flex px-2.5 py-0.5 rounded text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                                                        {d.alumnos_aprobados}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className={`inline-flex px-2.5 py-0.5 rounded text-xs font-bold ${
+                                                        d.tasa_aprobacion >= 80
+                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                            : d.tasa_aprobacion >= 50
+                                                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                                            : 'bg-red-50 text-red-700 border-red-200'
+                                                    }`}>
+                                                        {d.tasa_aprobacion}%
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <p className="text-slate-400 text-sm text-center py-4">No hay datos de docentes disponibles.</p>
+                        )}
                     </div>
 
                     {/* Bitácora de Acciones (Logs) */}

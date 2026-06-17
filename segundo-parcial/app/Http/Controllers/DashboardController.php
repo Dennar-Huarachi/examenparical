@@ -170,4 +170,96 @@ class DashboardController extends Controller
             'data' => $data
         ]);
     }
+
+    public function rendimientoGestiones()
+    {
+        $rendimiento = Postulante::select(
+                'gestion_id',
+                DB::raw('COUNT(*) as total_postulantes'),
+                DB::raw('AVG(nota_final) as promedio_notas'),
+                DB::raw('SUM(CASE WHEN estado = \'aprobado\' THEN 1 ELSE 0 END) as aprobados'),
+                DB::raw('SUM(CASE WHEN estado = \'reprobado\' THEN 1 ELSE 0 END) as reprobados'),
+                DB::raw('SUM(CASE WHEN estado = \'pendiente\' THEN 1 ELSE 0 END) as pendientes')
+            )
+            ->whereNotNull('nota_final')
+            ->groupBy('gestion_id')
+            ->with('gestion')
+            ->get()
+            ->map(function ($item) {
+                $totalEvaluados = $item->aprobados + $item->reprobados;
+                return [
+                    'gestion_id' => $item->gestion_id,
+                    'gestion_codigo' => $item->gestion?->codigo ?? "Gestion #{$item->gestion_id}",
+                    'total_postulantes' => (int) $item->total_postulantes,
+                    'promedio_notas' => round((float) ($item->promedio_notas ?? 0), 2),
+                    'aprobados' => (int) $item->aprobados,
+                    'reprobados' => (int) $item->reprobados,
+                    'pendientes' => (int) $item->pendientes,
+                    'tasa_aprobacion' => $totalEvaluados > 0
+                        ? round(($item->aprobados / $totalEvaluados) * 100, 1)
+                        : 0,
+                ];
+            })
+            ->sortByDesc('gestion_id')
+            ->values();
+
+        BitacoraHelper::registrar(
+            'CONSULTA_RENDIMIENTO_GESTIONES',
+            'dashboard',
+            null,
+            'Consulta de rendimiento académico por gestiones',
+            request()
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => $rendimiento
+        ]);
+    }
+
+    public function topDocente()
+    {
+        $top = DB::table('horario_bloques')
+            ->join('docentes', 'docentes.id', '=', 'horario_bloques.docente_id')
+            ->join('postulantes_docentes', 'postulantes_docentes.id', '=', 'docentes.postulante_docente_id')
+            ->join('grupos', 'grupos.id', '=', 'horario_bloques.grupo_id')
+            ->join('grupo_postulante', 'grupo_postulante.grupo_id', '=', 'grupos.id')
+            ->join('postulantes', 'postulantes.id', '=', 'grupo_postulante.postulante_id')
+            ->select(
+                'docentes.id as docente_id',
+                'postulantes_docentes.nombres',
+                'postulantes_docentes.apellidos',
+                DB::raw('COUNT(DISTINCT grupo_postulante.postulante_id) as total_alumnos'),
+                DB::raw("COUNT(DISTINCT CASE WHEN postulantes.estado = 'aprobado' THEN grupo_postulante.postulante_id END) as alumnos_aprobados")
+            )
+            ->groupBy('docentes.id', 'postulantes_docentes.nombres', 'postulantes_docentes.apellidos')
+            ->get()
+            ->map(function ($d) {
+                $tasa = $d->total_alumnos > 0
+                    ? round(($d->alumnos_aprobados / $d->total_alumnos) * 100, 1)
+                    : 0;
+                return [
+                    'docente_id' => $d->docente_id,
+                    'nombre' => $d->nombres . ' ' . $d->apellidos,
+                    'total_alumnos' => (int) $d->total_alumnos,
+                    'alumnos_aprobados' => (int) $d->alumnos_aprobados,
+                    'tasa_aprobacion' => $tasa,
+                ];
+            })
+            ->sortByDesc('tasa_aprobacion')
+            ->values();
+
+        BitacoraHelper::registrar(
+            'CONSULTA_TOP_DOCENTE',
+            'dashboard',
+            null,
+            'Consulta de docente con mayor aprobación de alumnos',
+            request()
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => $top
+        ]);
+    }
 }
