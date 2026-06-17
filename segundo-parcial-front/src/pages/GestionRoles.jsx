@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '../constants';
+import api from '../services/api';
 
 export default function GestionRoles() {
     const [roles, setRoles] = useState([]);
@@ -17,12 +17,11 @@ export default function GestionRoles() {
     const obtenerRoles = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/roles`);
-            const res = await response.json();
-            if (res.success) {
-                setRoles(res.data);
+            const response = await api.get('/roles');
+            if (response.data.success) {
+                setRoles(response.data.data);
             } else {
-                mostrarMensaje(res.message || 'Error al cargar roles', 'error');
+                mostrarMensaje(response.data.message || 'Error al cargar roles', 'error');
             }
         } catch (error) {
             mostrarMensaje('Error de conexión con el backend', 'error');
@@ -51,30 +50,24 @@ export default function GestionRoles() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        const url = editingRol ? `${API_URL}/roles/${editingRol.id}` : `${API_URL}/roles`;
-        const method = editingRol ? 'PUT' : 'POST';
 
         try {
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-            const res = await response.json();
+            let response;
+            if (editingRol) {
+                response = await api.put(`/roles/${editingRol.id}`, formData);
+            } else {
+                response = await api.post('/roles', formData);
+            }
 
-            if (res.success) {
-                mostrarMensaje(res.message || 'Operación exitosa', 'exito');
+            if (response.data.success) {
+                mostrarMensaje(response.data.message || 'Operación exitosa', 'exito');
                 setModalOpen(false);
                 obtenerRoles();
             } else {
-                // Muestra la validación exacta del backend (ej: duplicado)
-                mostrarMensaje(res.message || 'Error al procesar el rol', 'error');
+                mostrarMensaje(response.data.message || 'Error al procesar el rol', 'error');
             }
         } catch (error) {
-            mostrarMensaje('Error al conectar con el servidor', 'error');
+            mostrarMensaje(error.response?.data?.message || 'Error al conectar con el servidor', 'error');
         } finally {
             setLoading(false);
         }
@@ -85,22 +78,15 @@ export default function GestionRoles() {
 
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/roles/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            const res = await response.json();
-
-            if (res.success) {
-                mostrarMensaje(res.message || 'Rol eliminado con éxito', 'exito');
+            const response = await api.delete(`/roles/${id}`);
+            if (response.data.success) {
+                mostrarMensaje(response.data.message || 'Rol eliminado con éxito', 'exito');
                 obtenerRoles();
             } else {
-                mostrarMensaje(res.message || 'Error al eliminar', 'error');
+                mostrarMensaje(response.data.message || 'Error al eliminar', 'error');
             }
         } catch (error) {
-            mostrarMensaje('Error al conectar con el servidor', 'error');
+            mostrarMensaje(error.response?.data?.message || 'Error al conectar con el servidor', 'error');
         } finally {
             setLoading(false);
         }

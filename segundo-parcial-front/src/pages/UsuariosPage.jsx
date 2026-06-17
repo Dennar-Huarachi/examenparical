@@ -480,8 +480,6 @@ function TabUsuarios() {
         setTimeout(() => setToast({ visible: false, texto: '', tipo: '' }), 5000);
     };
 
-    useEffect(() => { cargarRoles(); cargarUsuarios(); }, []);
-
     const cargarRoles = async () => {
         const token = localStorage.getItem('token');
         try {
@@ -506,6 +504,9 @@ function TabUsuarios() {
             mostrarToast('Error al cargar usuarios.', 'error');
         } finally { setLoading(false); }
     }, [filtroRol, filtroActivo]);
+
+    useEffect(() => { cargarRoles(); }, []);
+    useEffect(() => { cargarUsuarios(); }, [cargarUsuarios]);
 
     const abrirCrearModal = () => {
         setEditingUsuario(null);

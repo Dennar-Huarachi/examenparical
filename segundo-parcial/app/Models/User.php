@@ -51,26 +51,26 @@ class User extends Authenticatable
 
     public function esCoordinadorOAutoridad(): bool
     {
-        return $this->rol && in_array($this->rol->nombre, ['coordinador', 'autoridad']);
+        return $this->rol && in_array(strtolower($this->rol->nombre), ['coordinador', 'autoridad']);
     }
 
     public function esDocente(): bool
     {
-        return $this->rol && $this->rol->nombre === 'docente';
+        return $this->rol && strtolower($this->rol->nombre) === 'docente';
     }
 
     public function esPostulante(): bool
     {
-        return $this->rol && $this->rol->nombre === 'postulante';
+        return $this->rol && strtolower($this->rol->nombre) === 'postulante';
     }
 
     public function esCoordinador(): bool
     {
-        return $this->rol && $this->rol->nombre === 'coordinador';
+        return $this->rol && strtolower($this->rol->nombre) === 'coordinador';
     }
 
     public function esAutoridad(): bool
     {
-        return $this->rol && $this->rol->nombre === 'autoridad';
+        return $this->rol && strtolower($this->rol->nombre) === 'autoridad';
     }
 }

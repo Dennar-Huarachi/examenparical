@@ -1,6 +1,6 @@
-import React from 'react';
+import { useContext } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/authprovider';
+import { AuthProvider, AuthContext } from './context/authprovider';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -29,32 +29,22 @@ import PagoRegistro from './pages/PagoRegistro';
 import ProbarPagoPage from './pages/ProbarPagoPage';
 import MiInscripcionPage from './pages/MiInscripcionPage';
 
-// Componente para proteger rutas de accesos no autenticados
 function ProtectedRoute({ children }) {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    const { user } = useContext(AuthContext);
+    if (!user) {
         return <Navigate to="/login" replace />;
     }
     return children;
 }
 
-// Componente para restringir vistas basadas en privilegios
 function PrivilegeProtectedRoute({ privilege, children }) {
-    const userString = localStorage.getItem('user');
-    if (!userString) {
+    const { user, hasPrivilege } = useContext(AuthContext);
+    if (!user) {
         return <Navigate to="/login" replace />;
     }
-    
-    try {
-        const user = JSON.parse(userString);
-        const hasPrivilege = user?.privilegios?.includes(privilege);
-        if (!hasPrivilege) {
-            return <Navigate to="/dashboard" replace />;
-        }
-    } catch (e) {
-        return <Navigate to="/login" replace />;
+    if (!hasPrivilege(privilege)) {
+        return <Navigate to="/dashboard" replace />;
     }
-
     return children;
 }
 
