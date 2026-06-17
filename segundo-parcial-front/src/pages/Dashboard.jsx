@@ -10,10 +10,6 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // Estado local para Docente (Registro de Asistencia)
-    const [asistenciaForm, setAsistenciaForm] = useState({ ci: '', grupo: '' });
-    const [asistenciaMensaje, setAsistenciaMensaje] = useState('');
-
     useEffect(() => {
         cargarEstadisticas();
     }, []);
@@ -46,14 +42,6 @@ export default function Dashboard() {
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleAsistenciaSubmit = (e) => {
-        e.preventDefault();
-        if (!asistenciaForm.ci) return;
-        setAsistenciaMensaje(`¡Asistencia registrada con éxito para el postulante CI: ${asistenciaForm.ci}!`);
-        setAsistenciaForm({ ci: '', grupo: '' });
-        setTimeout(() => setAsistenciaMensaje(''), 5000);
     };
 
     if (loading) {
@@ -367,12 +355,24 @@ export default function Dashboard() {
                         <h3 className="text-lg font-bold text-slate-800 border-b pb-3">Reportes Generales de Gestión</h3>
                         <p className="text-xs text-slate-500 font-medium leading-relaxed">Acceso a consolidados generales auditados del Curso Preuniversitario actual.</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <button className="flex items-center justify-between p-3 rounded-xl border border-slate-150 hover:bg-slate-50 transition-all text-xs font-bold text-slate-700 cursor-pointer">
-                                <span>📥 Consolidado Estadístico Final (PDF)</span>
+                            <button
+                                onClick={() => window.open(api.defaults.baseURL + '/reportes/exportar/pdf?tipo=postulantes&modo=estatico', '_blank')}
+                                className="flex items-center justify-between p-3 rounded-xl border border-slate-150 hover:bg-slate-50 hover:border-blue-300 transition-all text-xs font-bold text-slate-700 cursor-pointer"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    Consolidado Estadístico Final (PDF)
+                                </span>
                                 <span className="text-slate-400">Descargar</span>
                             </button>
-                            <button className="flex items-center justify-between p-3 rounded-xl border border-slate-150 hover:bg-slate-50 transition-all text-xs font-bold text-slate-700 cursor-pointer">
-                                <span>📥 Reporte Financiero de Matrículas (Excel)</span>
+                            <button
+                                onClick={() => window.open(api.defaults.baseURL + '/reportes/exportar/excel?tipo=postulantes&modo=estatico', '_blank')}
+                                className="flex items-center justify-between p-3 rounded-xl border border-slate-150 hover:bg-slate-50 hover:border-blue-300 transition-all text-xs font-bold text-slate-700 cursor-pointer"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Reporte Financiero de Matrículas (Excel)
+                                </span>
                                 <span className="text-slate-400">Descargar</span>
                             </button>
                         </div>
@@ -449,49 +449,23 @@ export default function Dashboard() {
                             Registrar Asistencia en Clase
                         </h3>
 
-                        {asistenciaMensaje && (
-                            <div className="p-3 text-xs font-bold rounded-xl bg-green-50 text-green-700 border border-green-200">
-                                {asistenciaMensaje}
+                        <p className="text-xs text-slate-400 font-medium text-center py-4">
+                            El módulo de asistencia estará disponible próximamente.
+                        </p>
+
+                        {stats?.mi_carga?.horarios?.length > 0 && (
+                            <div className="border-t border-slate-100 pt-4">
+                                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-3">Grupos asignados</span>
+                                <div className="space-y-2">
+                                    {stats.mi_carga.horarios.map((h) => (
+                                        <div key={h.id} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                                            <span className="text-xs font-semibold text-slate-700">{h.grupo?.nombre || '—'}</span>
+                                            <span className="text-[10px] text-slate-400">{h.materia?.nombre || '—'}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
-
-                        <form onSubmit={handleAsistenciaSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Seleccionar Grupo</label>
-                                <select 
-                                    className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white text-sm"
-                                    value={asistenciaForm.grupo}
-                                    onChange={(e) => setAsistenciaForm({ ...asistenciaForm, grupo: e.target.value })}
-                                >
-                                    {stats?.mi_carga?.horarios?.length > 0 ? (
-                                        stats.mi_carga.horarios.map(h => (
-                                            <option key={h.id} value={h.grupo?.nombre || ''}>
-                                                {h.grupo?.nombre || '—'} - {h.materia?.nombre || '—'}
-                                            </option>
-                                        ))
-                                    ) : (
-                                        <option value="">No hay grupos disponibles</option>
-                                    )}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">CI del Postulante</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Ej. 1234567"
-                                    required
-                                    className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none text-sm font-semibold"
-                                    value={asistenciaForm.ci}
-                                    onChange={(e) => setAsistenciaForm({ ...asistenciaForm, ci: e.target.value })}
-                                />
-                            </div>
-                            <button 
-                                type="submit"
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold p-3 rounded-xl transition-all cursor-pointer shadow-md text-xs uppercase tracking-wider"
-                            >
-                                Registrar Entrada
-                            </button>
-                        </form>
                     </div>
                 </div>
             )}
@@ -507,11 +481,9 @@ export default function Dashboard() {
                             <span className="text-[10px] text-green-600 font-bold">Gestión activa</span>
                         </div>
                         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-1">
-                            <span className="text-xs font-bold text-slate-400 uppercase">Avance Promedio Temario</span>
-                            <h4 className="text-2xl font-black text-slate-800">45%</h4>
-                            <div className="w-full bg-slate-150 h-1.5 rounded-full overflow-hidden mt-1">
-                                <div className="bg-indigo-600 h-full w-[45%]"></div>
-                            </div>
+                            <span className="text-xs font-bold text-slate-400 uppercase">Postulantes en Proceso</span>
+                            <h4 className="text-2xl font-black text-slate-800">{stats?.postulantes_por_estado?.pendiente ?? '—'}</h4>
+                            <span className="text-[10px] text-amber-600 font-bold">Pendientes de evaluación</span>
                         </div>
                         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-1">
                             <span className="text-xs font-bold text-slate-400 uppercase">Docentes Contratados</span>
@@ -548,15 +520,21 @@ export default function Dashboard() {
                         <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
                             <h3 className="text-lg font-bold text-slate-800 border-b pb-3">Generar Reportes Operativos</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <button className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-left hover:border-blue-400 hover:shadow-xs transition-all space-y-1.5 cursor-pointer">
+                                <button
+                                    onClick={() => window.open(api.defaults.baseURL + '/reportes/exportar/pdf?tipo=postulantes&modo=estatico', '_blank')}
+                                    className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-left hover:border-blue-400 hover:shadow-xs transition-all space-y-1.5 cursor-pointer"
+                                >
                                     <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Admitidos por Carrera</h4>
                                     <p className="text-xs text-slate-400 leading-normal">Lista depurada de postulantes aprobados ordenados por CI.</p>
-                                    <span className="text-[10px] text-blue-600 font-bold block pt-1">Descargar CSV →</span>
-                                </button>
-                                <button className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-left hover:border-blue-400 hover:shadow-xs transition-all space-y-1.5 cursor-pointer">
-                                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Reporte de Asistencia</h4>
-                                    <p className="text-xs text-slate-400 leading-normal">Consolidado general de marcaciones diarias por grupos.</p>
                                     <span className="text-[10px] text-blue-600 font-bold block pt-1">Descargar PDF →</span>
+                                </button>
+                                <button
+                                    onClick={() => window.open(api.defaults.baseURL + '/reportes/exportar/excel?tipo=grupos&modo=estatico', '_blank')}
+                                    className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-left hover:border-blue-400 hover:shadow-xs transition-all space-y-1.5 cursor-pointer"
+                                >
+                                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Reporte de Grupos</h4>
+                                    <p className="text-xs text-slate-400 leading-normal">Consolidado general de grupos con ocupación y docentes asignados.</p>
+                                    <span className="text-[10px] text-blue-600 font-bold block pt-1">Descargar Excel →</span>
                                 </button>
                             </div>
                         </div>
@@ -595,6 +573,12 @@ export default function Dashboard() {
                                         <div>
                                             <span className="text-xs font-bold text-slate-400 uppercase">Carrera Principal</span>
                                             <h4 className="text-sm font-bold text-slate-800 mt-0.5">{stats.mi_postulacion.carrera_principal || '—'}</h4>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 uppercase">Carrera Secundaria</span>
+                                            <h4 className="text-sm font-bold text-slate-800 mt-0.5">{stats.mi_postulacion.carrera_secundaria || '—'}</h4>
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100">
