@@ -18,7 +18,6 @@ if (empty($_POST) && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     $ct = $_SERVER['CONTENT_TYPE'] ?? '';
     if (str_contains($ct, 'application/json')) {
         $raw = file_get_contents('php://input');
-        error_log('DEBUG index.php: content_type=' . $ct . ' raw=' . ($raw === false ? 'false' : ($raw === '' ? 'empty' : $raw)) . ' post=' . json_encode($_POST));
         if ($raw !== false && $raw !== '') {
             $decoded = json_decode($raw, true);
             if (is_array($decoded)) {
