@@ -19,4 +19,4 @@ COPY . .
 
 RUN composer install --optimize-autoloader --no-scripts --no-interaction
 
-CMD sh -c 'cd public && php -S 0.0.0.0:${PORT:-8080} -t . ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php'
+CMD sh -c 'php artisan serve --host=0.0.0.0'

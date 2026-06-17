@@ -2,7 +2,7 @@
     "$schema": "https://railway.app/railway.schema.json",
     "deploy": {
         "numReplicas": 1,
-        "startCommand": "sh -c 'php artisan migrate --force && cd public && php -S 0.0.0.0:${PORT:-8080} -t . ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php'",
+        "startCommand": "sh -c 'php artisan migrate --force && php artisan serve --host=0.0.0.0'",
         "restartPolicyType": "ON_FAILURE",
         "restartPolicyMaxRetries": 10
     }
