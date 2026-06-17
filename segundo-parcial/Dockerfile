@@ -16,14 +16,14 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
-COPY . .
-
+COPY composer.json composer.lock ./
 RUN composer install --optimize-autoloader --no-scripts --no-interaction
 
-# Nginx config
-COPY nginx.conf /etc/nginx/sites-enabled/default
+COPY . .
 
-# Entrypoint
+RUN chmod -R 777 storage bootstrap/cache
+
+COPY nginx.conf /etc/nginx/sites-enabled/default
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
