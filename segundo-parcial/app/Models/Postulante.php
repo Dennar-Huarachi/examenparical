@@ -36,6 +36,7 @@ class Postulante extends Model
 
     protected $casts = [
         'fecha_nacimiento' => 'date',
+        'titulo_bachiller' => 'boolean',
         'año_bachillerato' => 'integer',
         'nota_final'       => 'decimal:2',
     ];

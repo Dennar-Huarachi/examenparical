@@ -92,19 +92,17 @@ class PagoController extends Controller
             ], 404);
         }
 
-        $stripeId = 'ch_' . Str::random(24); // Id de transacción por defecto (simulado)
+        $stripeId = 'ch_' . Str::random(24);
 
-        // Intentar llamada real a Stripe REST API
         $stripeSecret = env('STRIPE_SECRET_KEY');
         if ($stripeSecret) {
             try {
-                // Crear PaymentIntent en Stripe en centavos
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer ' . $stripeSecret,
                 ])->asForm()->post('https://api.stripe.com/v1/payment_intents', [
                     'amount' => intval($request->monto * 100),
-                    'currency' => 'bob', // bolivianos
-                    'payment_method' => 'pm_card_visa', // Tarjeta Visa de prueba Stripe
+                    'currency' => 'usd',
+                    'payment_method' => 'pm_card_visa',
                     'confirm' => 'true',
                     'automatic_payment_methods[enabled]' => 'true',
                     'automatic_payment_methods[allow_redirects]' => 'never',
@@ -113,10 +111,11 @@ class PagoController extends Controller
 
                 if ($response->successful() && isset($response->json()['id'])) {
                     $stripeId = $response->json()['id'];
+                } else {
+                    logger('Stripe error: ' . ($response->body() ?: 'Respuesta vacía'));
                 }
             } catch (\Exception $e) {
-                // Ignorar error de red y fallback a mock para asegurar funcionalidad de la demo
-                logger('Error de comunicación con Stripe. Usando simulación de pago.');
+                logger('Error de comunicación con Stripe: ' . $e->getMessage());
             }
         }
 

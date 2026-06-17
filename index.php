@@ -525,7 +525,7 @@ if (isset($_GET['q'])) {
                         <tbody>
                             <tr>
                                 <td><strong>Administrador</strong></td>
-                                <td><code>admin@admin.com</code></td>
+                                <td><code>rojasgutierrezkristenalexis@gmail.com</code></td>
                                 <td><code>12345678</code></td>
                             </tr>
                             <tr>

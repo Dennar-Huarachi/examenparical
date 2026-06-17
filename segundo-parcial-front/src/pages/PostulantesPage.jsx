@@ -218,16 +218,20 @@ export default function PostulantesPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const payload = {
+            ...formData,
+            titulo_bachiller: formData.titulo_bachiller === 'true',
+        };
         setGuardando(true);
         const token = localStorage.getItem('token');
         try {
             let res;
             if (editando) {
-                res = await api.put(`/postulantes/${editando.id}`, formData, {
+                res = await api.put(`/postulantes/${editando.id}`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } else {
-                res = await api.post('/postulantes', formData, {
+                res = await api.post('/postulantes', payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             }
@@ -562,8 +566,12 @@ export default function PostulantesPage() {
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Título de bachiller</label>
-                                                    <input name="titulo_bachiller" value={formData.titulo_bachiller} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" placeholder="Ej: Bachiller en Humanidades" />
+                                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Título de bachiller *</label>
+                                                    <select required name="titulo_bachiller" value={formData.titulo_bachiller} onChange={handleChange} className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+                                                        <option value="">Seleccionar</option>
+                                                        <option value="true">Sí</option>
+                                                        <option value="false">No</option>
+                                                    </select>
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Año de bachillerato</label>
